@@ -5,7 +5,7 @@ import {
   registerUser,
 } from "../controllers/authController"
 
-const router: Router = Router()
+const router = Router()
 
 router.post("/login", loginUser)
 router.post("/register", registerUser)

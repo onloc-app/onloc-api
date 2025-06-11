@@ -6,7 +6,7 @@ const JWT_SECRET =
   process.env.ACCESS_TOKEN_SECRET || "onloc-access-token-secret"
 
 export interface AuthenticatedRequest extends Request {
-  user?: users
+  user: users
 }
 
 const prisma = new PrismaClient()
@@ -39,8 +39,12 @@ export const authenticate = async (
       typeof (decoded as any).userId === "string"
     ) {
       const user = await prisma.users.findFirst({ where: { id: decoded.id } })
-      req.user = !user ? undefined : user
-      next()
+      if (user) {
+        req.user = user
+        next()
+      } else {
+        res.status(401).json({ message: "User not found" })
+      }
     } else {
       res.status(401).json({ message: "Invalid token payload" })
     }

@@ -4,6 +4,7 @@ import logRequest from "./middlewares/logging"
 import { PrismaClient } from "./generated/prisma"
 import authRoutes from "./routes/authRoutes"
 import settingRoutes from "./routes/settingRoutes"
+import deviceRoutes from "./routes/deviceRoutes"
 
 const prisma = new PrismaClient()
 const app = express()
@@ -14,6 +15,7 @@ app.use(logRequest)
 
 app.use("/api/auth", authRoutes)
 app.use("/api/settings", settingRoutes)
+app.use("/api/devices", deviceRoutes)
 
 app.get("/api/status", async (req, res) => {
   try {

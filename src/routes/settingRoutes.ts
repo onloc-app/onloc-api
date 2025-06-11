@@ -1,4 +1,5 @@
 import { Router } from "express"
+import { authenticate } from "../middlewares/auth"
 import {
   createSetting,
   deleteSetting,
@@ -6,9 +7,8 @@ import {
   readSettings,
   updateSetting,
 } from "../controllers/settingController"
-import { authenticate } from "../middlewares/auth"
 
-const router: Router = Router()
+const router = Router()
 
 router.use(authenticate)
 

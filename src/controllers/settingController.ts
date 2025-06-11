@@ -11,16 +11,16 @@ export const createSetting = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const { key, value } = req.body
+    const setting = req.body
 
-    if (!user?.admin) {
+    if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
     const existingSetting = await prisma.settings.findFirst({
       where: {
-        key,
+        key: setting.key,
       },
     })
 
@@ -31,8 +31,8 @@ export const createSetting = async (
 
     const newSetting = await prisma.settings.create({
       data: {
-        key,
-        value,
+        key: setting.key,
+        value: setting.value,
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -81,6 +81,7 @@ export const readSetting = async (
 
     if (!setting) {
       res.status(404).json({ message: "Setting not found" })
+      return
     }
 
     res.status(201).json({ setting: sanitizeData(setting) })
@@ -99,7 +100,7 @@ export const updateSetting = async (
     const user = req.user
     const setting = req.body
 
-    if (!user?.admin) {
+    if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
@@ -135,23 +136,23 @@ export const deleteSetting = async (
 
     if (!id) throw new Error("Id is missing")
 
-    if (!user?.admin) {
+    if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
-    const existingSetting = await prisma.settings.findFirst({
+    const setting = await prisma.settings.findFirst({
       where: { id: parseInt(id) },
     })
 
-    if (!existingSetting) {
+    if (!setting) {
       res.status(404).json({ message: "Setting not found" })
       return
     }
 
     await prisma.settings.delete({
       where: {
-        id: parseInt(id),
+        id: setting.id,
       },
     })
 
