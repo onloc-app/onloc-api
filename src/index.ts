@@ -1,0 +1,51 @@
+import chalk from "chalk"
+import express from "express"
+import logRequest from "./middlewares/logging"
+import { PrismaClient } from "./generated/prisma"
+import authRoutes from "./routes/authRoutes"
+import settingRoutes from "./routes/settingRoutes"
+
+const prisma = new PrismaClient()
+const app = express()
+const PORT = process.env.PORT || 3000
+
+app.use(express.json())
+app.use(logRequest)
+
+app.use("/api/auth", authRoutes)
+app.use("/api/settings", settingRoutes)
+
+app.get("/api/status", async (req, res) => {
+  try {
+    const admin = await prisma.users.findFirst({
+      where: {
+        admin: true,
+      },
+    })
+
+    const isSetup = !!admin
+
+    const registration = await prisma.settings.findFirst({
+      where: {
+        key: "registration",
+        value: "true",
+      },
+    })
+
+    res.status(200).json({
+      isSetup,
+      registration: registration
+        ? registration.value.toLowerCase() === "true"
+        : false,
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Internal server error" })
+  }
+})
+
+app.listen(PORT, () => {
+  console.log(
+    `🚀 Server running at ${chalk.yellow(`http://localhost:${PORT}`)}`
+  )
+})
