@@ -1,6 +1,6 @@
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import { PrismaClient } from "../generated/prisma"
+import { PrismaClient, type settings } from "../generated/prisma"
 import { sanitizeObject as sanitizeData } from "../utils"
 
 const prisma = new PrismaClient()
@@ -11,7 +11,7 @@ export const createSetting = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const setting = req.body
+    const setting: settings = req.body
 
     if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
@@ -75,7 +75,7 @@ export const readSetting = async (
 
     const setting = await prisma.settings.findFirst({
       where: {
-        id: parseInt(id),
+        id: BigInt(id),
       },
     })
 
@@ -98,7 +98,7 @@ export const updateSetting = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const setting = req.body
+    const setting: settings = req.body
 
     if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
@@ -142,7 +142,7 @@ export const deleteSetting = async (
     }
 
     const setting = await prisma.settings.findFirst({
-      where: { id: parseInt(id) },
+      where: { id: BigInt(id) },
     })
 
     if (!setting) {

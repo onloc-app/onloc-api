@@ -1,5 +1,5 @@
 import type { Response } from "express"
-import { PrismaClient } from "../generated/prisma"
+import { PrismaClient, type devices } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import { sanitizeObject } from "../utils"
 
@@ -11,9 +11,9 @@ export const createDevice = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const device = req.body
+    const device: devices = req.body
 
-    if (!user.id !== device.user_id) {
+    if (user.id !== device.user_id) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
@@ -78,7 +78,7 @@ export const readDevice = async (
 
     const device = await prisma.devices.findFirst({
       where: {
-        id: parseInt(id),
+        id: BigInt(id),
       },
     })
 
@@ -105,7 +105,7 @@ export const updateDevice = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const device = req.body
+    const device: devices = req.body
 
     if (user.id !== device.user_id) {
       res.status(403).json({ message: "Forbidden" })
@@ -144,7 +144,7 @@ export const deleteDevice = async (
     if (!id) throw new Error("Id is missing")
 
     const device = await prisma.settings.findFirst({
-      where: { id: parseInt(id) },
+      where: { id: BigInt(id) },
     })
 
     if (!device) {
