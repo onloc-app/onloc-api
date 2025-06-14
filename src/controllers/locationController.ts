@@ -19,7 +19,7 @@ export const createLocation = async (
     })
 
     if (!device) {
-      res.status(400).json({ message: "Device does not exist" })
+      res.status(404).json({ message: "Device not found" })
       return
     }
 
@@ -114,7 +114,10 @@ export const readLocation = async (
   try {
     const { id } = req.params
 
-    if (!id) throw new Error("Id is missing")
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
 
     const location = await prisma.locations.findFirst({
       where: {
@@ -141,30 +144,19 @@ export const updateLocation = async (
   try {
     const user = req.user
     const location: locations = req.body
-    const device = await prisma.devices.findFirst({
-      where: {
-        id: location.device_id,
-      },
-    })
-
-    if (!device) {
-      res.status(400).json({ message: "Device does not exist" })
-      return
-    }
-
-    if (device?.user_id !== user.id) {
-      res.status(403).json({ message: "Forbidden" })
-      return
-    }
 
     const existingLocation = await prisma.locations.findFirst({
       where: {
         id: BigInt(location.id),
+        devices: {
+          user_id: user.id,
+        },
       },
     })
 
     if (!existingLocation) {
       res.status(404).json({ message: "Location not found" })
+      return
     }
 
     const updatedLocation = await prisma.locations.update({
@@ -172,7 +164,7 @@ export const updateLocation = async (
       data: location,
     })
 
-    res.status(200).json({ location: sanitizeObject(location) })
+    res.status(200).json({ location: sanitizeObject(updatedLocation) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not update location" })
@@ -187,39 +179,65 @@ export const deleteLocation = async (
     const user = req.user
     const { id } = req.params
 
-    if (!id) throw new Error("Id is missing")
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
 
-    const location = await prisma.locations.findFirst({
+    const deletedLocation = await prisma.locations.delete({
       where: {
         id: BigInt(id),
+        devices: { user_id: user.id },
       },
     })
 
-    if (!location) {
+    if (!deletedLocation) {
       res.status(404).json({ message: "Location not found" })
       return
     }
-
-    const device = await prisma.devices.findFirst({
-      where: {
-        id: location.device_id,
-      },
-    })
-
-    if (!device || device.user_id !== user.id) {
-      res.status(403).json({ message: "Forbidden" })
-      return
-    }
-
-    await prisma.locations.delete({
-      where: {
-        id: BigInt(id),
-      },
-    })
 
     res.status(204).send()
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not delete location" })
+  }
+}
+
+export const availableDates = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const user = req.user
+    const { device_id } = req.query
+
+    if (!device_id) {
+      res.status(400).json({ message: "A device id is required" })
+      return
+    }
+
+    const locations = await prisma.locations.findMany({
+      where: {
+        device_id: BigInt(device_id.toString()),
+        devices: {
+          user_id: user.id,
+        },
+      },
+      select: {
+        created_at: true,
+      },
+    })
+
+    const dateSet = new Set<string>()
+
+    for (const { created_at } of locations) {
+      const dateOnly = created_at.toISOString().split("T")[0]
+      dateSet.add(dateOnly!)
+    }
+
+    res.status(200).json({ dates: Array.from(dateSet) })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not read available dates" })
   }
 }

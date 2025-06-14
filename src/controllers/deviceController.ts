@@ -74,7 +74,10 @@ export const readDevice = async (
     const user = req.user
     const { id } = req.params
 
-    if (!id) throw new Error("Id is missing")
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
 
     const device = await prisma.devices.findFirst({
       where: {
@@ -107,13 +110,11 @@ export const updateDevice = async (
     const user = req.user
     const device: devices = req.body
 
-    if (user.id !== device.user_id) {
-      res.status(403).json({ message: "Forbidden" })
-      return
-    }
-
     const existingDevice = await prisma.devices.findFirst({
-      where: { id: device.id },
+      where: {
+        id: device.id,
+        user_id: user.id,
+      },
     })
 
     if (!existingDevice) {
@@ -122,7 +123,10 @@ export const updateDevice = async (
     }
 
     const updatedDevice = await prisma.devices.update({
-      where: { id: device.id },
+      where: {
+        id: device.id,
+        user_id: user.id,
+      },
       data: device,
     })
 
@@ -141,27 +145,22 @@ export const deleteDevice = async (
     const user = req.user
     const { id } = req.params
 
-    if (!id) throw new Error("Id is missing")
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
 
-    const device = await prisma.settings.findFirst({
-      where: { id: BigInt(id) },
+    const deletedDevice = await prisma.devices.delete({
+      where: {
+        id: BigInt(id),
+        user_id: user.id,
+      },
     })
 
-    if (!device) {
+    if (!deletedDevice) {
       res.status(404).json({ message: "Device not found" })
       return
     }
-
-    if (user.id !== device.id) {
-      res.status(403).json({ message: "Forbidden" })
-      return
-    }
-
-    await prisma.devices.delete({
-      where: {
-        id: device.id,
-      },
-    })
 
     res.status(204).send()
   } catch (error) {

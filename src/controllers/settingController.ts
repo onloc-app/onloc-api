@@ -71,7 +71,10 @@ export const readSetting = async (
   try {
     const { id } = req.params
 
-    if (!id) throw new Error("Id is missing")
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
 
     const setting = await prisma.settings.findFirst({
       where: {
@@ -134,7 +137,10 @@ export const deleteSetting = async (
     const user = req.user
     const { id } = req.params
 
-    if (!id) throw new Error("Id is missing")
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
 
     if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
