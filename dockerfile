@@ -8,8 +8,6 @@ RUN bun install
 
 COPY . .
 
-RUN bun run build
-
 EXPOSE 4000
 
 CMD ["bun", "start"]
