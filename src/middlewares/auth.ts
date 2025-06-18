@@ -38,7 +38,9 @@ export const authenticate = async (
       "userId" in decoded &&
       typeof (decoded as any).userId === "string"
     ) {
-      const user = await prisma.users.findFirst({ where: { id: decoded.id } })
+      const user = await prisma.users.findFirstOrThrow({
+        where: { id: decoded.userId },
+      })
       if (user) {
         req.user = user
         next()

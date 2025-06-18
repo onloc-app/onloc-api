@@ -2,7 +2,7 @@ import type { Request, Response } from "express"
 import bcrypt from "bcryptjs"
 import jwt, { type JwtPayload } from "jsonwebtoken"
 import { PrismaClient } from "../generated/prisma"
-import { sanitizeObject } from "../utils"
+import { sanitizeData } from "../utils"
 
 const prisma = new PrismaClient()
 
@@ -12,7 +12,7 @@ const REFRESH_TOKEN_SECRET =
   process.env.REFRESH_TOKEN_SECRET || "onloc-refresh-token-secret"
 
 const generateAccessToken = (userId: string) => {
-  return jwt.sign({ userId }, ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
+  return jwt.sign({ userId }, ACCESS_TOKEN_SECRET, { expiresIn: "1h" })
 }
 
 const generateRefreshToken = (userId: string) => {
@@ -21,6 +21,7 @@ const generateRefreshToken = (userId: string) => {
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   const { username, password } = req.body
+  const agent = req.headers["user-agent"]
 
   try {
     const user = await prisma.users.findFirst({
@@ -49,11 +50,14 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       data: {
         token: refreshToken,
         user_id: user.id,
+        agent,
+        created_at: new Date(),
+        updated_at: new Date(),
       },
     })
 
     res.status(200).json({
-      user: sanitizeObject(user),
+      user: sanitizeData(user),
       accessToken,
       refreshToken,
     })
@@ -68,6 +72,7 @@ export const registerUser = async (
   res: Response
 ): Promise<void> => {
   const { username, password } = req.body
+  const agent = req.headers["user-agent"]
 
   if (!username || !password) {
     res
@@ -116,11 +121,14 @@ export const registerUser = async (
       data: {
         token: refreshToken,
         user_id: newUser.id,
+        agent,
+        created_at: new Date(),
+        updated_at: new Date(),
       },
     })
 
     res.status(201).json({
-      user: sanitizeObject(newUser),
+      user: sanitizeData(newUser),
       accessToken,
       refreshToken,
     })
@@ -141,8 +149,11 @@ export const refreshAccessToken = async (
     return
   }
 
-  const tokenRecord = await prisma.refreshTokens.findFirst({
+  const tokenRecord = await prisma.refreshTokens.update({
     where: { token: refreshToken },
+    data: {
+      updated_at: new Date(),
+    },
   })
 
   if (!tokenRecord) {

@@ -1,7 +1,7 @@
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import { PrismaClient, type settings } from "../generated/prisma"
-import { sanitizeObject as sanitizeData } from "../utils"
+import { sanitizeData } from "../utils"
 
 const prisma = new PrismaClient()
 
@@ -119,7 +119,10 @@ export const updateSetting = async (
 
     const updatedSetting = await prisma.settings.update({
       where: { id: setting.id },
-      data: setting,
+      data: {
+        ...setting,
+        updated_at: new Date(),
+      },
     })
 
     res.status(200).json({ setting: sanitizeData(updatedSetting) })

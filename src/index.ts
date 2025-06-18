@@ -6,6 +6,8 @@ import authRoutes from "./routes/authRoutes"
 import settingRoutes from "./routes/settingRoutes"
 import deviceRoutes from "./routes/deviceRoutes"
 import locationRoutes from "./routes/locationRoutes"
+import userRoutes from "./routes/userRoutes"
+import tokenRoutes from "./routes/tokenRoutes"
 
 const prisma = new PrismaClient()
 const app = express()
@@ -18,6 +20,8 @@ app.use("/api/auth", authRoutes)
 app.use("/api/settings", settingRoutes)
 app.use("/api/devices", deviceRoutes)
 app.use("/api/locations", locationRoutes)
+app.use("/api/user", userRoutes)
+app.use("/api/tokens", tokenRoutes)
 
 app.get("/api/status", async (req, res) => {
   try {

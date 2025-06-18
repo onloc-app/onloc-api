@@ -1,7 +1,7 @@
 import type { Response } from "express"
 import { PrismaClient, type locations } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import { sanitizeObject } from "../utils"
+import { sanitizeData } from "../utils"
 
 const prisma = new PrismaClient()
 
@@ -36,13 +36,18 @@ export const createLocation = async (
         altitude_accuracy: location.altitude_accuracy,
         latitude: location.latitude,
         longitude: location.longitude,
-        battery: location.battery,
+        battery:
+          location.battery != null &&
+          location.battery > 0 &&
+          location.battery <= 100
+            ? location.battery
+            : undefined,
         created_at: new Date(),
         updated_at: new Date(),
       },
     })
 
-    res.status(201).json({ location: sanitizeObject(newLocation) })
+    res.status(201).json({ location: sanitizeData(newLocation) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not create location" })
@@ -87,20 +92,20 @@ export const readLocations = async (
       if (latest === "true") {
         const location = await prisma.locations.findFirst({
           where,
-          orderBy: { created_at: "desc" },
+          orderBy: { created_at: "asc" },
         })
         return { device_id: id, locations: location ? [location] : [] }
       }
 
       const locations = await prisma.locations.findMany({
         where,
-        orderBy: { created_at: "desc" },
+        orderBy: { created_at: "asc" },
       })
       return { device_id: id, locations: locations }
     }
 
     const results = await Promise.all(deviceIds.map(fetchLocations))
-    res.status(200).json({ locations: sanitizeObject(results) })
+    res.status(200).json({ locations: sanitizeData(results) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not read locations" })
@@ -130,7 +135,7 @@ export const readLocation = async (
       return
     }
 
-    res.status(200).json({ location: sanitizeObject(location) })
+    res.status(200).json({ location: sanitizeData(location) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not read location" })
@@ -161,10 +166,13 @@ export const updateLocation = async (
 
     const updatedLocation = await prisma.locations.update({
       where: { id: location.id },
-      data: location,
+      data: {
+        ...location,
+        updated_at: new Date(),
+      },
     })
 
-    res.status(200).json({ location: sanitizeObject(updatedLocation) })
+    res.status(200).json({ location: sanitizeData(updatedLocation) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not update location" })

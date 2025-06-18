@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { authenticate } from "../middlewares/auth"
 import {
+  availableDates,
   createLocation,
   deleteLocation,
   readLocation,
@@ -11,6 +12,8 @@ import {
 const router = Router()
 
 router.use(authenticate)
+
+router.get("/dates", availableDates)
 
 router.post("/", createLocation)
 router.get("/", readLocations)

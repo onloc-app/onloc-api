@@ -29,7 +29,7 @@ model locations {
   altitude_accuracy Float?
   latitude          Float
   longitude         Float
-  battery           BigInt?
+  battery           Int?
   created_at        DateTime @db.Timestamp(0)
   updated_at        DateTime @db.Timestamp(0)
   devices           devices  @relation(fields: [device_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "locations_device_id_foreign")
@@ -55,10 +55,13 @@ model users {
 }
 
 model refreshTokens {
-  id      BigInt @id @default(autoincrement())
-  token   String
-  user_id BigInt
-  user    users  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id         BigInt   @id @default(autoincrement())
+  token      String
+  user_id    BigInt
+  agent      String?
+  created_at DateTime @db.Timestamp(0)
+  updated_at DateTime @db.Timestamp(0)
+  user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([token], map: "refreshTokens_token_unique")
 }

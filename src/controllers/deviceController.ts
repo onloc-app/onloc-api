@@ -1,9 +1,13 @@
 import type { Response } from "express"
-import { PrismaClient, type devices } from "../generated/prisma"
+import { PrismaClient, type devices, type locations } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import { sanitizeObject } from "../utils"
+import { sanitizeData } from "../utils"
 
 const prisma = new PrismaClient()
+
+interface DeviceWithLatestLocation extends devices {
+  latest_location: locations | null
+}
 
 export const createDevice = async (
   req: AuthenticatedRequest,
@@ -12,11 +16,6 @@ export const createDevice = async (
   try {
     const user = req.user
     const device: devices = req.body
-
-    if (user.id !== device.user_id) {
-      res.status(403).json({ message: "Forbidden" })
-      return
-    }
 
     const existingDevice = await prisma.devices.findFirst({
       where: {
@@ -39,7 +38,7 @@ export const createDevice = async (
       },
     })
 
-    res.status(201).json({ device: sanitizeObject(newDevice) })
+    res.status(201).json({ device: sanitizeData(newDevice) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not create device" })
@@ -53,13 +52,23 @@ export const readDevices = async (
   try {
     const user = req.user
 
-    const devices = await prisma.devices.findMany({
+    const rawDevices = await prisma.devices.findMany({
       where: {
         user_id: user.id,
       },
     })
 
-    res.status(200).json({ devices: sanitizeObject(devices) })
+    const devices: DeviceWithLatestLocation[] = await Promise.all(
+      rawDevices.map(async (device) => {
+        const latest_location = await prisma.locations.findFirst({
+          where: { device_id: device.id },
+          orderBy: { created_at: "desc" },
+        })
+        return { ...device, latest_location }
+      })
+    )
+
+    res.status(200).json({ devices: sanitizeData(devices) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not read devices" })
@@ -79,23 +88,35 @@ export const readDevice = async (
       return
     }
 
-    const device = await prisma.devices.findFirst({
+    const rawDevice = await prisma.devices.findFirst({
       where: {
         id: BigInt(id),
       },
     })
 
-    if (!device) {
+    if (!rawDevice) {
       res.status(404).json({ message: "Device not found" })
       return
     }
 
-    if (user.id !== device.user_id) {
+    if (user.id !== rawDevice.user_id) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
-    res.status(200).json({ device: sanitizeObject(device) })
+    const latest_location = await prisma.locations.findFirst({
+      where: {
+        device_id: rawDevice.id,
+      },
+      orderBy: { created_at: "desc" },
+    })
+
+    const device: DeviceWithLatestLocation = {
+      ...rawDevice,
+      latest_location,
+    }
+
+    res.status(200).json({ device: sanitizeData(device) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not read device" })
@@ -122,15 +143,18 @@ export const updateDevice = async (
       return
     }
 
-    const updatedDevice = await prisma.devices.update({
+    const updated = await prisma.devices.update({
       where: {
         id: device.id,
         user_id: user.id,
       },
-      data: device,
+      data: {
+        ...device,
+        updated_at: new Date(),
+      },
     })
 
-    res.status(200).json({ device: sanitizeObject(updatedDevice) })
+    res.status(200).json({ device: sanitizeData(updated) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not update device" })
@@ -150,14 +174,14 @@ export const deleteDevice = async (
       return
     }
 
-    const deletedDevice = await prisma.devices.delete({
+    const deleted = await prisma.devices.delete({
       where: {
         id: BigInt(id),
         user_id: user.id,
       },
     })
 
-    if (!deletedDevice) {
+    if (!deleted) {
       res.status(404).json({ message: "Device not found" })
       return
     }
