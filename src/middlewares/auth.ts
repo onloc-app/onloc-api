@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import jwt from "jsonwebtoken"
 import { PrismaClient, type users } from "../generated/prisma"
+import type { ExtendedError, Socket } from "socket.io"
 
 const JWT_SECRET =
   process.env.ACCESS_TOKEN_SECRET || "onloc-access-token-secret"
@@ -52,5 +53,45 @@ export const authenticate = async (
     }
   } catch (error) {
     res.status(401).json({ message: "Invalid or expired token" })
+  }
+}
+
+export const authenticateIO = (
+  socket: Socket,
+  next: (error?: ExtendedError) => void
+): void => {
+  const token = socket.handshake.auth.token
+
+  if (!token) {
+    return next(new Error("Invalid or expired token"))
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET)
+
+    if (
+      typeof decoded === "object" &&
+      decoded !== null &&
+      "userId" in decoded &&
+      typeof (decoded as any).userId === "string"
+    ) {
+      prisma.users
+        .findUnique({
+          where: { id: decoded.userId },
+        })
+        .then((user) => {
+          if (!user) {
+            return next(new Error("User not found"))
+          }
+          socket.data.user = user
+          socket.join(`user_${user.id}`)
+          next()
+        })
+        .catch(() => next(new Error("User not found")))
+    } else {
+      next(new Error("Invalid token payload"))
+    }
+  } catch (error) {
+    next(new Error("Invalid or expired token"))
   }
 }

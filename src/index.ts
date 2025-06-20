@@ -1,13 +1,17 @@
 import chalk from "chalk"
 import express from "express"
+import http from "http"
 import logRequest from "./middlewares/logging"
 import { PrismaClient } from "./generated/prisma"
+import { Server as SocketIOServer } from "socket.io"
+import { createIO } from "./socket"
 import authRoutes from "./routes/authRoutes"
 import settingRoutes from "./routes/settingRoutes"
 import deviceRoutes from "./routes/deviceRoutes"
 import locationRoutes from "./routes/locationRoutes"
 import userRoutes from "./routes/userRoutes"
 import tokenRoutes from "./routes/tokenRoutes"
+import { authenticateIO } from "./middlewares/auth"
 
 const prisma = new PrismaClient()
 const app = express()
@@ -52,7 +56,21 @@ app.get("/api/status", async (req, res) => {
   }
 })
 
-app.listen(PORT, () => {
+// Websockets
+const server = http.createServer(app)
+const io = createIO(server, { cors: { origin: "*" } })
+
+io.use(authenticateIO)
+
+io.on("connection", (socket) => {
+  console.log(`New client connected: ${socket.id}`)
+
+  socket.on("disconnect", () => {
+    console.log(`Client disconnected: ${socket.id}`)
+  })
+})
+
+server.listen(PORT, () => {
   console.log(
     `🚀 Server running at ${chalk.yellow(`http://localhost:${PORT}`)}`
   )

@@ -2,6 +2,7 @@ import type { Response } from "express"
 import { PrismaClient, type locations } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import { sanitizeData } from "../utils"
+import { getIO } from "../socket"
 
 const prisma = new PrismaClient()
 
@@ -10,6 +11,7 @@ export const createLocation = async (
   res: Response
 ): Promise<void> => {
   try {
+    const io = getIO()
     const user = req.user
     const location: locations = req.body
     const device = await prisma.devices.findFirst({
@@ -46,6 +48,8 @@ export const createLocation = async (
         updated_at: new Date(),
       },
     })
+
+    io.to(`user_${user.id}`).emit("locationsUpdate", sanitizeData(newLocation))
 
     res.status(201).json({ location: sanitizeData(newLocation) })
   } catch (error) {
