@@ -65,6 +65,21 @@ io.use(authenticateIO)
 io.on("connection", (socket) => {
   console.log(`New client connected: ${socket.id}`)
 
+  socket.on("register-device", ({ deviceId }) => {
+    socket.join(`device-${deviceId}`)
+    console.log(`Device ${deviceId} joined room`)
+  })
+
+  socket.on("unregister-device", ({ deviceId }) => {
+    socket.leave(`device-${deviceId}`)
+    console.log(`Device ${deviceId} left room`)
+  })
+
+  socket.on("ring", ({ deviceId }) => {
+    io.to(`device-${deviceId}`).emit("ring-command")
+    console.log(`Sent ring to device ${deviceId}`)
+  })
+
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`)
   })
