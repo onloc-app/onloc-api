@@ -3,7 +3,6 @@ import express from "express"
 import http from "http"
 import logRequest from "./middlewares/logging"
 import { PrismaClient } from "./generated/prisma"
-import { Server as SocketIOServer } from "socket.io"
 import { createIO } from "./socket"
 import authRoutes from "./routes/authRoutes"
 import settingRoutes from "./routes/settingRoutes"
@@ -12,12 +11,22 @@ import locationRoutes from "./routes/locationRoutes"
 import userRoutes from "./routes/userRoutes"
 import tokenRoutes from "./routes/tokenRoutes"
 import { authenticateIO } from "./middlewares/auth"
+import cors from "cors"
 
 const prisma = new PrismaClient()
 const app = express()
 const PORT = process.env.PORT || 3000
 
 app.use(express.json())
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true)
+      return callback(null, origin)
+    },
+    credentials: true,
+  })
+)
 app.use(logRequest)
 
 app.use("/api/auth", authRoutes)
