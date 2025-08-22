@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",
+    "@types/bonjour": "^3.5.13",
     "bcryptjs": "^3.0.2",
+    "bonjour": "^3.5.0",
     "chalk": "^5.4.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",

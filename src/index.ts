@@ -12,6 +12,7 @@ import userRoutes from "./routes/userRoutes"
 import tokenRoutes from "./routes/tokenRoutes"
 import { authenticateIO } from "./middlewares/auth"
 import cors from "cors"
+import Bonjour from "bonjour"
 
 const prisma = new PrismaClient()
 const app = express()
@@ -94,8 +95,16 @@ io.on("connection", (socket) => {
   })
 })
 
+const bonjour = Bonjour()
+
 server.listen(PORT, () => {
   console.log(
     `🚀 Server running at ${chalk.yellow(`http://localhost:${PORT}`)}`
   )
+
+  bonjour.publish({
+    name: "Onloc Server",
+    type: "http",
+    port: Number(PORT),
+  })
 })
