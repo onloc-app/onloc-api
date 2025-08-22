@@ -2,7 +2,7 @@ import chalk from "chalk"
 import express from "express"
 import http from "http"
 import logRequest from "./middlewares/logging"
-import { PrismaClient } from "./generated/prisma"
+import { PrismaClient, type users } from "./generated/prisma"
 import { createIO } from "./socket"
 import authRoutes from "./routes/authRoutes"
 import settingRoutes from "./routes/settingRoutes"
@@ -73,14 +73,30 @@ const io = createIO(server, { cors: { origin: "*" } })
 io.use(authenticateIO)
 
 io.on("connection", (socket) => {
+  const user = socket.data.user as users
+  if (!user) {
+    console.log("No user attached to socket")
+    socket.disconnect()
+    return
+  }
+
   console.log(`New client connected: ${socket.id}`)
 
-  socket.on("register-device", ({ deviceId }) => {
+  socket.on("register-device", async ({ deviceId }) => {
+    // const device = await prisma.devices.findUnique({ where: { id: deviceId } })
+    // if (!device) return socket.emit("error", "Device not found")
+    // if (device.user_id !== user.id) {
+    //   return socket.emit("error", "You do not own this device")
+    // }
+
     socket.join(`device-${deviceId}`)
     console.log(`Device ${deviceId} joined room`)
   })
 
-  socket.on("unregister-device", ({ deviceId }) => {
+  socket.on("unregister-device", async ({ deviceId }) => {
+    // const device = await prisma.devices.findUnique({ where: { id: deviceId } })
+    // if (!device) return socket.emit("error", "Device not found")
+
     socket.leave(`device-${deviceId}`)
     console.log(`Device ${deviceId} left room`)
   })
