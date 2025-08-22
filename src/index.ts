@@ -101,7 +101,13 @@ io.on("connection", (socket) => {
     console.log(`Device ${deviceId} left room`)
   })
 
-  socket.on("ring", ({ deviceId }) => {
+  socket.on("ring", async ({ deviceId }) => {
+    const device = await prisma.devices.findUnique({ where: { id: deviceId } })
+    if (!device) return socket.emit("error", "Device not found")
+    if (device.user_id !== user.id) {
+      return socket.emit("error", "You do not own this device")
+    }
+
     io.to(`device-${deviceId}`).emit("ring-command")
     console.log(`Sent ring to device ${deviceId}`)
   })
