@@ -83,19 +83,19 @@ io.on("connection", (socket) => {
   console.log(`New client connected: ${socket.id}`)
 
   socket.on("register-device", async ({ deviceId }) => {
-    // const device = await prisma.devices.findUnique({ where: { id: deviceId } })
-    // if (!device) return socket.emit("error", "Device not found")
-    // if (device.user_id !== user.id) {
-    //   return socket.emit("error", "You do not own this device")
-    // }
+    const device = await prisma.devices.findUnique({ where: { id: deviceId } })
+    if (!device) return socket.emit("error", "Device not found")
+    if (device.user_id !== user.id) {
+      return socket.emit("error", "You do not own this device")
+    }
 
     socket.join(`device-${deviceId}`)
     console.log(`Device ${deviceId} joined room`)
   })
 
   socket.on("unregister-device", async ({ deviceId }) => {
-    // const device = await prisma.devices.findUnique({ where: { id: deviceId } })
-    // if (!device) return socket.emit("error", "Device not found")
+    const device = await prisma.devices.findUnique({ where: { id: deviceId } })
+    if (!device) return socket.emit("error", "Device not found")
 
     socket.leave(`device-${deviceId}`)
     console.log(`Device ${deviceId} left room`)
