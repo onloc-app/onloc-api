@@ -12,7 +12,7 @@ import userRoutes from "./routes/userRoutes"
 import tokenRoutes from "./routes/tokenRoutes"
 import { authenticateIO } from "./middlewares/auth"
 import cors from "cors"
-import Bonjour from "bonjour"
+import { Bonjour } from "bonjour-service"
 
 const prisma = new PrismaClient()
 const app = express()
@@ -117,7 +117,7 @@ io.on("connection", (socket) => {
   })
 })
 
-const bonjour = Bonjour()
+const bonjour = new Bonjour()
 
 server.listen(PORT, () => {
   console.log(
@@ -126,7 +126,9 @@ server.listen(PORT, () => {
 
   bonjour.publish({
     name: "Onloc Server",
-    type: "onloc",
+    type: "http",
+    subtypes: ["onloc"],
+    protocol: "tcp",
     port: Number(PORT),
   })
 })
