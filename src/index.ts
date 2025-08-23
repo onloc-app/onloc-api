@@ -126,7 +126,7 @@ server.listen(PORT, () => {
 
   bonjour.publish({
     name: "Onloc Server",
-    type: "http",
+    type: "onloc",
     port: Number(PORT),
   })
 })
