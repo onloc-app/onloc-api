@@ -1,8 +1,9 @@
-name: Draft Release
+name: Build Beta Docker Images
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
 
 jobs:
   docker:
