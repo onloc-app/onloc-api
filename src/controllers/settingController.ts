@@ -50,6 +50,13 @@ export const readSettings = async (
   res: Response
 ): Promise<void> => {
   try {
+    const user = req.user
+
+    if (!user.admin) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
+
     const settings = await prisma.settings.findMany()
 
     if (!settings) {
@@ -69,7 +76,13 @@ export const readSetting = async (
   res: Response
 ): Promise<void> => {
   try {
+    const user = req.user
     const { id } = req.params
+
+    if (!user.admin) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
 
     if (!id) {
       res.status(400).json({ message: "Id is missing" })
@@ -88,7 +101,6 @@ export const readSetting = async (
     }
 
     res.status(201).json({ setting: sanitizeData(setting) })
-    return
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not read setting" })
@@ -109,7 +121,10 @@ export const updateSetting = async (
     }
 
     const existingSetting = await prisma.settings.findFirst({
-      where: { id: setting.id },
+      where: {
+        id: setting.id,
+        key: setting.key,
+      },
     })
 
     if (!existingSetting) {
@@ -118,7 +133,10 @@ export const updateSetting = async (
     }
 
     const updatedSetting = await prisma.settings.update({
-      where: { id: setting.id },
+      where: {
+        id: setting.id,
+        key: setting.key,
+      },
       data: {
         ...setting,
         updated_at: new Date(),
@@ -140,13 +158,13 @@ export const deleteSetting = async (
     const user = req.user
     const { id } = req.params
 
-    if (!id) {
-      res.status(400).json({ message: "Id is missing" })
+    if (!user.admin) {
+      res.status(403).json({ message: "Forbidden" })
       return
     }
 
-    if (!user.admin) {
-      res.status(403).json({ message: "Forbidden" })
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
       return
     }
 

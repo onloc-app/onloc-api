@@ -10,6 +10,7 @@ import deviceRoutes from "./routes/deviceRoutes"
 import locationRoutes from "./routes/locationRoutes"
 import userRoutes from "./routes/userRoutes"
 import tokenRoutes from "./routes/tokenRoutes"
+import preferenceRoutes from "./routes/preferenceRoutes"
 import { authenticateIO } from "./middlewares/auth"
 import cors from "cors"
 import { Bonjour } from "bonjour-service"
@@ -36,6 +37,7 @@ app.use("/api/devices", deviceRoutes)
 app.use("/api/locations", locationRoutes)
 app.use("/api/user", userRoutes)
 app.use("/api/tokens", tokenRoutes)
+app.use("/api/preferences", preferenceRoutes)
 
 app.get("/api/status", async (req, res) => {
   try {
