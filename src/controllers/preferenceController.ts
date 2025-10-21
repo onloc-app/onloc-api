@@ -54,12 +54,26 @@ export const readPreferences = async (
 ): Promise<void> => {
   try {
     const user = req.user
+    const { key } = req.query
 
-    const preferences = await prisma.preferences.findMany({
-      where: {
-        user_id: BigInt(user.id),
-      },
-    })
+    const fetchPreferences = async () => {
+      if (key) {
+        return await prisma.preferences.findFirst({
+          where: {
+            user_id: BigInt(user.id),
+            key: String(key),
+          },
+        })
+      } else {
+        return await prisma.preferences.findMany({
+          where: {
+            user_id: BigInt(user.id),
+          },
+        })
+      }
+    }
+
+    const preferences = await fetchPreferences()
 
     if (!preferences) {
       res.status(404).json({ message: "Preferences not found" })
