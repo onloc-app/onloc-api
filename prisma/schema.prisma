@@ -63,14 +63,25 @@ model users {
   devices       devices[]
   refreshTokens refreshTokens[]
   preferences   preferences[]
+  apiKeys       apiKeys[]
 }
 
 model refreshTokens {
   id         BigInt   @id @default(autoincrement())
-  token      String   @unique(map: "refreshTokens_token_unique")
   user_id    BigInt
+  token      String   @unique(map: "refreshTokens_token_unique")
   agent      String?
   created_at DateTime @db.Timestamp(0)
   updated_at DateTime @db.Timestamp(0)
-  user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "refreshTokens_user_id_foreign")
+}
+
+model apiKeys {
+  id         BigInt   @id @default(autoincrement())
+  user_id    BigInt
+  name       String
+  key        String   @unique(map: "apiKeys_key_unique")
+  created_at DateTime @db.Timestamp(0)
+  updated_at DateTime @db.Timestamp(0)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "apiKeys_user_id_foreign")
 }

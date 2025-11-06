@@ -32,6 +32,28 @@ export const authenticate = async (
   }
 
   try {
+    const apiKey = await prisma.apiKeys.findFirst({
+      where: {
+        key: token,
+      },
+    })
+
+    if (apiKey) {
+      const user = await prisma.users.findFirst({
+        where: {
+          id: apiKey.user_id,
+        },
+      })
+      if (user) {
+        req.user = user
+        next()
+        return
+      } else {
+        res.status(401).json({ message: "User not found" })
+        return
+      }
+    }
+
     const decoded = jwt.verify(token, JWT_SECRET)
     if (
       typeof decoded === "object" &&
@@ -45,14 +67,18 @@ export const authenticate = async (
       if (user) {
         req.user = user
         next()
+        return
       } else {
         res.status(401).json({ message: "User not found" })
+        return
       }
     } else {
       res.status(401).json({ message: "Invalid token payload" })
+      return
     }
   } catch (error) {
     res.status(401).json({ message: "Invalid or expired token" })
+    return
   }
 }
 
@@ -63,7 +89,8 @@ export const authenticateIO = (
   const token = socket.handshake.auth.token
 
   if (!token) {
-    return next(new Error("Invalid or expired token"))
+    next(new Error("Invalid or expired token"))
+    return
   }
 
   try {
@@ -81,17 +108,21 @@ export const authenticateIO = (
         })
         .then((user) => {
           if (!user) {
-            return next(new Error("User not found"))
+            next(new Error("User not found"))
+            return
           }
           socket.data.user = user
           socket.join(`user_${user.id}`)
           next()
+          return
         })
         .catch(() => next(new Error("User not found")))
     } else {
       next(new Error("Invalid token payload"))
+      return
     }
   } catch (error) {
     next(new Error("Invalid or expired token"))
+    return
   }
 }
