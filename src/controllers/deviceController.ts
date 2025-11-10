@@ -2,11 +2,13 @@ import type { Response } from "express"
 import { PrismaClient, type devices, type locations } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import { sanitizeData } from "../utils"
+import { getIO } from "../socket"
 
 const prisma = new PrismaClient()
 
-interface DeviceWithLatestLocation extends devices {
+interface DeviceExtra extends devices {
   latest_location: locations | null
+  is_connected: boolean
 }
 
 export const createDevice = async (
@@ -58,13 +60,17 @@ export const readDevices = async (
       },
     })
 
-    const devices: DeviceWithLatestLocation[] = await Promise.all(
+    const devices: DeviceExtra[] = await Promise.all(
       rawDevices.map(async (device) => {
         const latest_location = await prisma.locations.findFirst({
           where: { device_id: device.id },
           orderBy: { created_at: "desc" },
         })
-        return { ...device, latest_location }
+        return {
+          ...device,
+          latest_location,
+          is_connected: await checkConnection(device.id),
+        }
       })
     )
 
@@ -111,9 +117,10 @@ export const readDevice = async (
       orderBy: { created_at: "desc" },
     })
 
-    const device: DeviceWithLatestLocation = {
+    const device: DeviceExtra = {
       ...rawDevice,
       latest_location,
+      is_connected: await checkConnection(rawDevice.id),
     }
 
     res.status(200).json({ device: sanitizeData(device) })
@@ -191,4 +198,10 @@ export const deleteDevice = async (
     console.error(error)
     res.status(500).json({ message: "Could not delete device" })
   }
+}
+
+export const checkConnection = async (id: BigInt) => {
+  const roomName = `device-${id}`
+  const socketsInRoom = await getIO().in(roomName).fetchSockets()
+  return socketsInRoom.length > 0
 }

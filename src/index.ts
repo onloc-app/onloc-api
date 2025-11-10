@@ -94,6 +94,7 @@ io.on("connection", (socket) => {
     }
 
     socket.join(`device-${deviceId}`)
+    io.to(`user_${user.id}`).emit("connectionsUpdate")
     console.log(`Device ${deviceId} joined room`)
   })
 
@@ -102,6 +103,7 @@ io.on("connection", (socket) => {
     if (!device) return socket.emit("error", "Device not found")
 
     socket.leave(`device-${deviceId}`)
+    io.to(`user_${user.id}`).emit("connectionsUpdate")
     console.log(`Device ${deviceId} left room`)
   })
 
