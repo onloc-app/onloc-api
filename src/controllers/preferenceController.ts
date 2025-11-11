@@ -58,12 +58,13 @@ export const readPreferences = async (
 
     const fetchPreferences = async () => {
       if (key) {
-        return await prisma.preferences.findFirst({
+        const preference = await prisma.preferences.findFirst({
           where: {
             user_id: BigInt(user.id),
             key: String(key),
           },
         })
+        return [preference]
       } else {
         return await prisma.preferences.findMany({
           where: {
