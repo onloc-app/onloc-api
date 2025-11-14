@@ -15,6 +15,7 @@ import apiKeyRoutes from "./routes/apiKeyRoutes"
 import { authenticateIO } from "./middlewares/auth"
 import cors from "cors"
 import { Bonjour } from "bonjour-service"
+import { isRegistrationEnabled, isSetup } from "./helpers/statusHelper"
 
 const prisma = new PrismaClient()
 const app = express()
@@ -43,26 +44,9 @@ app.use("/api/apikeys", apiKeyRoutes)
 
 app.get("/api/status", async (req, res) => {
   try {
-    const admin = await prisma.users.findFirst({
-      where: {
-        admin: true,
-      },
-    })
-
-    const isSetup = !!admin
-
-    const registration = await prisma.settings.findFirst({
-      where: {
-        key: "registration",
-        value: "true",
-      },
-    })
-
     res.status(200).json({
-      isSetup,
-      registration: registration
-        ? registration.value.toLowerCase() === "true"
-        : false,
+      isSetup: await isSetup(),
+      registration: await isRegistrationEnabled(),
     })
   } catch (error) {
     console.error(error)

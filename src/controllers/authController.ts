@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import jwt, { type JwtPayload } from "jsonwebtoken"
 import { PrismaClient } from "../generated/prisma"
 import { sanitizeData } from "../utils"
+import { isRegistrationEnabled, isSetup } from "../helpers/statusHelper"
 
 const prisma = new PrismaClient()
 
@@ -79,6 +80,14 @@ export const registerUser = async (
       .status(400)
       .json({ message: "Username and password fields are required" })
     return
+  }
+
+  // Registration is always enabled when the server is not setup (no users).
+  if (await isSetup()) {
+    if (!(await isRegistrationEnabled())) {
+      res.status(403).json({ message: "Registration is disabled" })
+      return
+    }
   }
 
   try {
