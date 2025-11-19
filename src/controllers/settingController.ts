@@ -7,7 +7,7 @@ const prisma = new PrismaClient()
 
 export const createSetting = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -47,7 +47,7 @@ export const createSetting = async (
 
 export const readSettings = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -73,7 +73,7 @@ export const readSettings = async (
 
 export const readSetting = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -109,7 +109,7 @@ export const readSetting = async (
 
 export const updateSetting = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -152,7 +152,7 @@ export const updateSetting = async (
 
 export const deleteSetting = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user

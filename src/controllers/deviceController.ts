@@ -13,7 +13,7 @@ interface DeviceExtra extends devices {
 
 export const createDevice = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -49,7 +49,7 @@ export const createDevice = async (
 
 export const readDevices = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -71,7 +71,7 @@ export const readDevices = async (
           latest_location,
           is_connected: await checkConnection(device.id),
         }
-      })
+      }),
     )
 
     res.status(200).json({ devices: sanitizeData(devices) })
@@ -83,7 +83,7 @@ export const readDevices = async (
 
 export const readDevice = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -132,7 +132,7 @@ export const readDevice = async (
 
 export const updateDevice = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -170,7 +170,7 @@ export const updateDevice = async (
 
 export const deleteDevice = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user

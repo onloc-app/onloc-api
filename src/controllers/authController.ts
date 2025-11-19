@@ -70,7 +70,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
 export const registerUser = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const { username, password } = req.body
   const agent = req.headers["user-agent"]
@@ -149,7 +149,7 @@ export const registerUser = async (
 
 export const refreshAccessToken = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const { refreshToken } = req.body
 
@@ -175,7 +175,7 @@ export const refreshAccessToken = async (
     REFRESH_TOKEN_SECRET,
     (
       error: jwt.VerifyErrors | null,
-      decoded: string | JwtPayload | undefined
+      decoded: string | JwtPayload | undefined,
     ) => {
       if (error) {
         res.status(403).json({ message: "Invalid refresh token" })
@@ -187,6 +187,6 @@ export const refreshAccessToken = async (
       res.status(200).json({
         accessToken,
       })
-    }
+    },
   )
 }

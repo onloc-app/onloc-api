@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 
 export const createApiKey = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -33,7 +33,7 @@ export const createApiKey = async (
 
 export const readApiKeys = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -53,7 +53,7 @@ export const readApiKeys = async (
 
 export const deleteApiKeys = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user

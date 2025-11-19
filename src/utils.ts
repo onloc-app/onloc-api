@@ -4,6 +4,6 @@ export function sanitizeData(data: any) {
       if (key === "password") return undefined
       if (typeof value === "bigint") return value.toString()
       return value
-    })
+    }),
   )
 }

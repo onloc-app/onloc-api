@@ -7,7 +7,7 @@ const prisma = new PrismaClient()
 
 export const readTokens = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -27,7 +27,7 @@ export const readTokens = async (
 
 export const deleteToken = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -59,7 +59,7 @@ export const deleteToken = async (
 
 export const deleteTokenWithBody = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user

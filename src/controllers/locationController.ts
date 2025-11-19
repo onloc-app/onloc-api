@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 
 export const createLocation = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const io = getIO()
@@ -60,7 +60,7 @@ export const createLocation = async (
 
 export const readLocations = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -118,7 +118,7 @@ export const readLocations = async (
 
 export const readLocation = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const { id } = req.params
@@ -148,7 +148,7 @@ export const readLocation = async (
 
 export const updateLocation = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -185,7 +185,7 @@ export const updateLocation = async (
 
 export const deleteLocation = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -217,7 +217,7 @@ export const deleteLocation = async (
 
 export const availableDates = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user

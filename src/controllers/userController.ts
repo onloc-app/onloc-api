@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 
 export const readUser = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -21,7 +21,7 @@ export const readUser = async (
 
 export const updateUser = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = req.user
@@ -62,5 +62,44 @@ export const updateUser = async (
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not update user" })
+  }
+}
+
+export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user
+    const { id } = req.params
+
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
+
+    if (BigInt(id) !== user.id && !user.admin) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
+
+    const userToDelete = await prisma.users.findFirst({
+      where: {
+        id: BigInt(id),
+      },
+    })
+
+    if (!userToDelete) {
+      res.status(404).json({ message: "User not found" })
+      return
+    }
+
+    await prisma.users.delete({
+      where: {
+        id: BigInt(id),
+      },
+    })
+
+    res.status(204)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "Could not delete user" })
   }
 }
