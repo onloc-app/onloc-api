@@ -15,7 +15,7 @@ const prisma = new PrismaClient()
 export const authenticate = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const authHeader = req.headers.authorization
 
@@ -84,7 +84,7 @@ export const authenticate = async (
 
 export const authenticateIO = (
   socket: Socket,
-  next: (error?: ExtendedError) => void
+  next: (error?: ExtendedError) => void,
 ): void => {
   const token = socket.handshake.auth.token
 
@@ -113,6 +113,7 @@ export const authenticateIO = (
           }
           socket.data.user = user
           socket.join(`user_${user.id}`)
+          if (user.admin) socket.join("admin")
           next()
           return
         })

@@ -3,8 +3,25 @@ import { PrismaClient, type locations } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import { sanitizeData } from "../utils"
 import { getIO } from "../socket"
+import type { CrudAction } from "../types"
 
 const prisma = new PrismaClient()
+
+function emitAction(
+  userId: BigInt,
+  action: CrudAction,
+  locations: locations[],
+): void {
+  const io = getIO()
+
+  const data = {
+    action: action,
+    locations: locations,
+  }
+
+  io.to(`user_${userId.toString()}`).emit("locations_change", data)
+  io.to(`admin`).emit("admin_locations_change", data)
+}
 
 export const createLocation = async (
   req: AuthenticatedRequest,
@@ -49,7 +66,7 @@ export const createLocation = async (
       },
     })
 
-    io.to(`user_${user.id}`).emit("locationsUpdate", sanitizeData(newLocation))
+    emitAction(user.id, "create", [sanitizeData(newLocation)])
 
     res.status(201).json({ location: sanitizeData(newLocation) })
   } catch (error) {
@@ -176,6 +193,8 @@ export const updateLocation = async (
       },
     })
 
+    emitAction(user.id, "update", [sanitizeData(updatedLocation)])
+
     res.status(200).json({ location: sanitizeData(updatedLocation) })
   } catch (error) {
     console.error(error)
@@ -208,10 +227,49 @@ export const deleteLocation = async (
       return
     }
 
+    emitAction(user.id, "delete", [sanitizeData(deleteLocation)])
+
     res.status(204).send()
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not delete location" })
+  }
+}
+
+export const deleteLocations = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const reqUser = req.user
+    const { user_id } = req.query
+
+    if (!user_id) {
+      res.status(400).json({ message: "User id is missing" })
+      return
+    }
+
+    const formattedUserId = BigInt(user_id.toString())
+
+    if (!reqUser.admin && reqUser.id !== formattedUserId) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
+
+    const deletedLocations = await prisma.locations.deleteMany({
+      where: {
+        devices: {
+          user_id: formattedUserId,
+        },
+      },
+    })
+
+    emitAction(formattedUserId, "delete", [sanitizeData(deletedLocations)])
+
+    res.status(204).send()
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not delete locations" })
   }
 }
 

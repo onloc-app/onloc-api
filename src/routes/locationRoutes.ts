@@ -4,6 +4,7 @@ import {
   availableDates,
   createLocation,
   deleteLocation,
+  deleteLocations,
   readLocation,
   readLocations,
   updateLocation,
@@ -19,6 +20,7 @@ router.post("/", createLocation)
 router.get("/", readLocations)
 router.get("/:id", readLocation)
 router.patch("/", updateLocation)
+router.delete("/", deleteLocations)
 router.delete("/:id", deleteLocation)
 
 export default router

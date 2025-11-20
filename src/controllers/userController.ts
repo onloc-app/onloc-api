@@ -182,7 +182,7 @@ export const deleteUser = async (
       },
     })
 
-    res.status(204)
+    res.status(204).send()
   } catch (error) {
     console.log(error)
     res.status(500).json({ message: "Could not delete user" })

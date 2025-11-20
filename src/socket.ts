@@ -36,7 +36,7 @@ export function createIO(
       }
 
       socket.join(`device-${deviceId}`)
-      io!.to(`user_${user.id}`).emit("connectionsUpdate")
+      io!.to(`user_${user.id}`).emit("connections_change")
       console.log(`Device ${deviceId} joined room`)
     })
 
@@ -47,7 +47,7 @@ export function createIO(
       if (!device) return socket.emit("error", "Device not found")
 
       socket.leave(`device-${deviceId}`)
-      io!.to(`user_${user.id}`).emit("connectionsUpdate")
+      io!.to(`user_${user.id}`).emit("connections_change")
       console.log(`Device ${deviceId} left room`)
     })
 
