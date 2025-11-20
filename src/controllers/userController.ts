@@ -6,7 +6,89 @@ import bcrypt from "bcryptjs"
 
 const prisma = new PrismaClient()
 
+interface UserExtra extends users {
+  number_of_devices: number
+  number_of_locations: number
+}
+
+export const readUsers = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user
+
+    if (!user.admin) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
+
+    const rawUsers = await prisma.users.findMany()
+
+    const users: UserExtra[] = await Promise.all(
+      rawUsers.map(async (user) => {
+        const devices = await prisma.devices.findMany({
+          where: { user_id: user.id },
+        })
+
+        const locationCounts = await Promise.all(
+          devices.map((device) =>
+            prisma.locations.count({ where: { device_id: device.id } }),
+          ),
+        )
+
+        const numberOfLocations = locationCounts.reduce(
+          (sum, count) => sum + count,
+          0,
+        )
+
+        return {
+          ...user,
+          number_of_devices: devices.length,
+          number_of_locations: numberOfLocations,
+        }
+      }),
+    )
+
+    res.status(200).json({ users: sanitizeData(users) })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not read users" })
+  }
+}
+
 export const readUser = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const reqUser = req.user
+    const { id } = req.params
+
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
+
+    if (BigInt(id) !== reqUser.id && !reqUser.admin) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
+
+    const user = await prisma.users.findFirst({
+      where: {
+        id: BigInt(id),
+      },
+    })
+
+    res.status(200).json({ user: sanitizeData(user) })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not read user" })
+  }
+}
+
+export const readUserInfo = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
@@ -65,9 +147,12 @@ export const updateUser = async (
   }
 }
 
-export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
+export const deleteUser = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
   try {
-    const user = req.user
+    const reqUser = req.user
     const { id } = req.params
 
     if (!id) {
@@ -75,18 +160,18 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
       return
     }
 
-    if (BigInt(id) !== user.id && !user.admin) {
+    if (BigInt(id) !== reqUser.id && !reqUser.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
-    const userToDelete = await prisma.users.findFirst({
+    const user = await prisma.users.findFirst({
       where: {
         id: BigInt(id),
       },
     })
 
-    if (!userToDelete) {
+    if (!user) {
       res.status(404).json({ message: "User not found" })
       return
     }
