@@ -200,6 +200,46 @@ export const deleteDevice = async (
   }
 }
 
+export const ringDevice = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user
+    const { id } = req.params
+
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
+
+    const device = await prisma.devices.findFirst({
+      where: {
+        id: BigInt(id),
+        user_id: user.id,
+      },
+    })
+
+    if (!device) {
+      res.status(404).json({ message: "Device not found" })
+      return
+    }
+
+    if (!(await checkConnection(BigInt(id)))) {
+      res.status(409).json({ message: "Device is offline" })
+      return
+    }
+
+    const io = getIO()
+    io.to(`device-${id}`).emit("ring-command")
+
+    res.status(202).send()
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not ring device" })
+  }
+}
+
 export const checkConnection = async (id: BigInt) => {
   const roomName = `device-${id}`
   const socketsInRoom = await getIO().in(roomName).fetchSockets()

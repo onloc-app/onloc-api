@@ -5,6 +5,7 @@ import {
   deleteDevice,
   readDevice,
   readDevices,
+  ringDevice,
   updateDevice,
 } from "../controllers/deviceController"
 
@@ -17,5 +18,6 @@ router.get("/", readDevices)
 router.get("/:id", readDevice)
 router.patch("/", updateDevice)
 router.delete("/:id", deleteDevice)
+router.post("/:id/ring", ringDevice)
 
 export default router
