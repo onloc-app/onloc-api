@@ -1,9 +1,8 @@
 import type { Response } from "express"
+import { type settings } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import { PrismaClient, type settings } from "../generated/prisma"
+import prisma from "../prisma"
 import { sanitizeData } from "../utils"
-
-const prisma = new PrismaClient()
 
 export const createSetting = async (
   req: AuthenticatedRequest,

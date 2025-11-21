@@ -1,10 +1,8 @@
+import crypto from "crypto"
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import { PrismaClient } from "../generated/prisma"
-import crypto from "crypto"
+import prisma from "../prisma"
 import { sanitizeData } from "../utils"
-
-const prisma = new PrismaClient()
 
 export const createApiKey = async (
   req: AuthenticatedRequest,

@@ -1,6 +1,4 @@
-import { PrismaClient } from "../generated/prisma"
-
-const prisma = new PrismaClient()
+import prisma from "../prisma"
 
 export async function isSetup(): Promise<boolean> {
   const admin = await prisma.users.findFirst({

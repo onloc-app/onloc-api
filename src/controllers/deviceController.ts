@@ -1,10 +1,9 @@
 import type { Response } from "express"
-import { PrismaClient, type devices, type locations } from "../generated/prisma"
+import { type devices, type locations } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import { sanitizeData } from "../utils"
+import prisma from "../prisma"
 import { getIO } from "../socket"
-
-const prisma = new PrismaClient()
+import { sanitizeData } from "../utils"
 
 interface DeviceExtra extends devices {
   latest_location: locations | null
@@ -222,6 +221,11 @@ export const ringDevice = async (
 
     if (!device) {
       res.status(404).json({ message: "Device not found" })
+      return
+    }
+
+    if (!device.can_ring) {
+      res.status(403).json({ message: "Device cannot be rung" })
       return
     }
 

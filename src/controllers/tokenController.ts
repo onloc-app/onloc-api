@@ -1,9 +1,7 @@
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import { PrismaClient } from "../generated/prisma"
+import prisma from "../prisma"
 import { sanitizeData } from "../utils"
-
-const prisma = new PrismaClient()
 
 export const readTokens = async (
   req: AuthenticatedRequest,

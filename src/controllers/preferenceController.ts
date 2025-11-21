@@ -1,9 +1,8 @@
-import { PrismaClient, type preferences } from "../generated/prisma"
-import type { AuthenticatedRequest } from "../middlewares/auth"
 import type { Response } from "express"
+import { type preferences } from "../generated/prisma"
+import type { AuthenticatedRequest } from "../middlewares/auth"
+import prisma from "../prisma"
 import { sanitizeData } from "../utils"
-
-const prisma = new PrismaClient()
 
 export const createPreference = async (
   req: AuthenticatedRequest,

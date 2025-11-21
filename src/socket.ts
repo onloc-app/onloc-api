@@ -1,10 +1,9 @@
-import { Server as SocketIOServer, type ServerOptions } from "socket.io"
 import type { Server as HTTPServer } from "http"
-import { authenticateIO } from "./middlewares/auth"
+import { Server as SocketIOServer, type ServerOptions } from "socket.io"
 import type { users } from "./generated/prisma"
-import { PrismaClient } from "./generated/prisma"
+import { authenticateIO } from "./middlewares/auth"
+import prisma from "./prisma"
 
-const prisma = new PrismaClient()
 let io: SocketIOServer | null = null
 
 export function createIO(

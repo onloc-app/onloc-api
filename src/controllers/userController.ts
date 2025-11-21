@@ -1,10 +1,9 @@
-import type { Response } from "express"
-import type { AuthenticatedRequest } from "../middlewares/auth"
-import { sanitizeData } from "../utils"
-import { Prisma, PrismaClient, type users } from "../generated/prisma"
 import bcrypt from "bcryptjs"
-
-const prisma = new PrismaClient()
+import type { Response } from "express"
+import { Prisma, type users } from "../generated/prisma"
+import type { AuthenticatedRequest } from "../middlewares/auth"
+import prisma from "../prisma"
+import { sanitizeData } from "../utils"
 
 interface UserExtra extends users {
   number_of_devices: number

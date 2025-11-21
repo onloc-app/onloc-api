@@ -1,7 +1,8 @@
-import type { Request, Response, NextFunction } from "express"
+import type { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
-import { PrismaClient, type users } from "../generated/prisma"
 import type { ExtendedError, Socket } from "socket.io"
+import { type users } from "../generated/prisma"
+import prisma from "../prisma"
 
 const JWT_SECRET =
   process.env.ACCESS_TOKEN_SECRET || "onloc-access-token-secret"
@@ -9,8 +10,6 @@ const JWT_SECRET =
 export interface AuthenticatedRequest extends Request {
   user: users
 }
-
-const prisma = new PrismaClient()
 
 export const authenticate = async (
   req: AuthenticatedRequest,

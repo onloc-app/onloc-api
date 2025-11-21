@@ -1,11 +1,10 @@
 import type { Response } from "express"
-import { PrismaClient, type locations } from "../generated/prisma"
+import { type locations } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import { sanitizeData } from "../utils"
+import prisma from "../prisma"
 import { getIO } from "../socket"
 import type { CrudAction } from "../types"
-
-const prisma = new PrismaClient()
+import { sanitizeData } from "../utils"
 
 function emitAction(
   userId: BigInt,

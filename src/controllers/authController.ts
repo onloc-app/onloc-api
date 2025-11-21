@@ -1,11 +1,9 @@
-import type { Request, Response } from "express"
 import bcrypt from "bcryptjs"
+import type { Request, Response } from "express"
 import jwt, { type JwtPayload } from "jsonwebtoken"
-import { PrismaClient } from "../generated/prisma"
-import { sanitizeData } from "../utils"
 import { isRegistrationEnabled, isSetup } from "../helpers/statusHelper"
-
-const prisma = new PrismaClient()
+import prisma from "../prisma"
+import { sanitizeData } from "../utils"
 
 const ACCESS_TOKEN_SECRET =
   process.env.ACCESS_TOKEN_SECRET || "onloc-access-token-secret"
