@@ -20,6 +20,7 @@ export const createDevice = async (
 
     const existingDevice = await prisma.devices.findFirst({
       where: {
+        user_id: user.id,
         name: device.name,
       },
     })
@@ -34,6 +35,7 @@ export const createDevice = async (
         user_id: user.id,
         name: device.name,
         icon: device.icon,
+        can_ring: device.can_ring,
         created_at: new Date(),
         updated_at: new Date(),
       },
