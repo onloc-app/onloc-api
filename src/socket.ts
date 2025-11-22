@@ -3,6 +3,7 @@ import { Server as SocketIOServer, type ServerOptions } from "socket.io"
 import type { users } from "./generated/prisma"
 import { authenticateIO } from "./middlewares/auth"
 import prisma from "./prisma"
+import { ringQueue } from "./services/ringQueue"
 
 let io: SocketIOServer | null = null
 
@@ -37,6 +38,14 @@ export function createIO(
       socket.join(`device-${deviceId}`)
       io!.to(`user_${user.id}`).emit("connections_change")
       console.log(`Device ${deviceId} joined room`)
+
+      // Ring the device if it's in the queue
+      const formattedDeviceId = BigInt(deviceId)
+      if (ringQueue.has(formattedDeviceId)) {
+        io!.to(`device-${formattedDeviceId}`).emit("ring-command")
+        console.log(`Sent queued ring to ${formattedDeviceId}`)
+        ringQueue.remove(formattedDeviceId)
+      }
     })
 
     socket.on("unregister-device", async ({ deviceId }) => {

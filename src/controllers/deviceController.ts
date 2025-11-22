@@ -4,6 +4,7 @@ import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { getIO } from "../socket"
 import { sanitizeData } from "../utils"
+import { ringQueue } from "../services/ringQueue"
 
 interface DeviceExtra extends devices {
   latest_location: locations | null
@@ -232,14 +233,17 @@ export const ringDevice = async (
     }
 
     if (!(await checkConnection(BigInt(id)))) {
-      res.status(409).json({ message: "Device is offline" })
+      ringQueue.add(BigInt(id))
+      console.log(`Added ${id} to ring queue`)
+      res.status(202).send()
       return
     }
 
     const io = getIO()
     io.to(`device-${id}`).emit("ring-command")
+    console.log(`Sent ring to ${id}`)
 
-    res.status(202).send()
+    res.status(200).send()
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not ring device" })
