@@ -1,5 +1,5 @@
 import type { Response } from "express"
-import { type settings } from "../generated/prisma"
+import { type Setting } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
@@ -10,14 +10,14 @@ export const createSetting = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const setting: settings = req.body
+    const setting: Setting = req.body
 
     if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
-    const existingSetting = await prisma.settings.findFirst({
+    const existingSetting = await prisma.setting.findFirst({
       where: {
         key: setting.key,
       },
@@ -28,7 +28,7 @@ export const createSetting = async (
       return
     }
 
-    const newSetting = await prisma.settings.create({
+    const newSetting = await prisma.setting.create({
       data: {
         key: setting.key,
         value: setting.value,
@@ -56,7 +56,7 @@ export const readSettings = async (
       return
     }
 
-    const settings = await prisma.settings.findMany()
+    const settings = await prisma.setting.findMany()
 
     if (!settings) {
       res.status(404).json({ message: "Settings not found" })
@@ -88,7 +88,7 @@ export const readSetting = async (
       return
     }
 
-    const setting = await prisma.settings.findFirst({
+    const setting = await prisma.setting.findFirst({
       where: {
         id: BigInt(id),
       },
@@ -112,14 +112,14 @@ export const updateSetting = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const setting: settings = req.body
+    const setting: Setting = req.body
 
     if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
-    const existingSetting = await prisma.settings.findFirst({
+    const existingSetting = await prisma.setting.findFirst({
       where: {
         id: setting.id,
         key: setting.key,
@@ -131,7 +131,7 @@ export const updateSetting = async (
       return
     }
 
-    const updatedSetting = await prisma.settings.update({
+    const updatedSetting = await prisma.setting.update({
       where: {
         id: setting.id,
         key: setting.key,
@@ -167,7 +167,7 @@ export const deleteSetting = async (
       return
     }
 
-    const setting = await prisma.settings.findFirst({
+    const setting = await prisma.setting.findFirst({
       where: { id: BigInt(id) },
     })
 
@@ -176,7 +176,7 @@ export const deleteSetting = async (
       return
     }
 
-    await prisma.settings.delete({
+    await prisma.setting.delete({
       where: {
         id: setting.id,
       },

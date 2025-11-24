@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs"
 import type { Response } from "express"
-import { Prisma, type users } from "../generated/prisma"
+import { Prisma, type User } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
 
-interface UserExtra extends users {
+interface UserExtra extends User {
   number_of_devices: number
   number_of_locations: number
 }
@@ -22,17 +22,17 @@ export const readUsers = async (
       return
     }
 
-    const rawUsers = await prisma.users.findMany()
+    const rawUsers = await prisma.user.findMany()
 
     const users: UserExtra[] = await Promise.all(
       rawUsers.map(async (user) => {
-        const devices = await prisma.devices.findMany({
+        const devices = await prisma.device.findMany({
           where: { user_id: user.id },
         })
 
         const locationCounts = await Promise.all(
           devices.map((device) =>
-            prisma.locations.count({ where: { device_id: device.id } }),
+            prisma.location.count({ where: { device_id: device.id } }),
           ),
         )
 
@@ -74,7 +74,7 @@ export const readUser = async (
       return
     }
 
-    const user = await prisma.users.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         id: BigInt(id),
       },
@@ -106,10 +106,10 @@ export const updateUser = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const body: Partial<users> = req.body
+    const body: Partial<User> = req.body
 
     if (body.username && body.username !== user.username) {
-      const taken = await prisma.users.findUnique({
+      const taken = await prisma.user.findUnique({
         where: { username: body.username },
       })
       if (taken) {
@@ -123,7 +123,7 @@ export const updateUser = async (
       return
     }
 
-    const data: Prisma.usersUpdateInput = {}
+    const data: Prisma.UserUpdateInput = {}
 
     if (body.username) data.username = body.username
     if (body.password?.length) {
@@ -134,7 +134,7 @@ export const updateUser = async (
     }
     data.updated_at = new Date()
 
-    const updated = await prisma.users.update({
+    const updated = await prisma.user.update({
       where: { id: user.id },
       data,
     })
@@ -164,7 +164,7 @@ export const deleteUser = async (
       return
     }
 
-    const user = await prisma.users.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         id: BigInt(id),
       },
@@ -175,7 +175,7 @@ export const deleteUser = async (
       return
     }
 
-    await prisma.users.delete({
+    await prisma.user.delete({
       where: {
         id: BigInt(id),
       },

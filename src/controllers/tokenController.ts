@@ -10,7 +10,7 @@ export const readTokens = async (
   try {
     const user = req.user
 
-    const tokens = await prisma.refreshTokens.findMany({
+    const tokens = await prisma.refreshToken.findMany({
       where: {
         user_id: user.id,
       },
@@ -36,7 +36,7 @@ export const deleteToken = async (
       return
     }
 
-    const deleted = await prisma.refreshTokens.delete({
+    const deleted = await prisma.refreshToken.delete({
       where: {
         id: BigInt(id),
         user_id: user.id,
@@ -61,16 +61,16 @@ export const deleteTokenWithBody = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const { refreshToken } = req.body
+    const { refresh_token } = req.body
 
-    if (!refreshToken) {
+    if (!refresh_token) {
       res.status(400).json({ message: "Token is missing" })
       return
     }
 
-    const deleted = await prisma.refreshTokens.delete({
+    const deleted = await prisma.refreshToken.delete({
       where: {
-        token: refreshToken,
+        token: refresh_token,
         user_id: user.id,
       },
     })

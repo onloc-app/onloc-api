@@ -23,7 +23,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
   const agent = req.headers["user-agent"]
 
   try {
-    const user = await prisma.users.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         username: username,
       },
@@ -45,7 +45,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const refreshToken = generateRefreshToken(user.id.toString())
 
     // Store the refresh token
-    await prisma.refreshTokens.create({
+    await prisma.refreshToken.create({
       data: {
         token: refreshToken,
         user_id: user.id,
@@ -57,8 +57,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     res.status(200).json({
       user: sanitizeData(user),
-      accessToken,
-      refreshToken,
+      access_token: accessToken,
+      refresh_token: refreshToken,
     })
   } catch (error) {
     console.error(error)
@@ -89,7 +89,7 @@ export const registerUser = async (
   }
 
   try {
-    const existingUser = await prisma.users.findFirst({
+    const existingUser = await prisma.user.findFirst({
       where: {
         username: username,
       },
@@ -100,7 +100,7 @@ export const registerUser = async (
       return
     }
 
-    const existingAdmin = await prisma.users.findFirst({
+    const existingAdmin = await prisma.user.findFirst({
       where: {
         admin: true,
       },
@@ -109,7 +109,7 @@ export const registerUser = async (
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const newUser = await prisma.users.create({
+    const newUser = await prisma.user.create({
       data: {
         username,
         password: hashedPassword,
@@ -124,7 +124,7 @@ export const registerUser = async (
     const refreshToken = generateRefreshToken(newUser.id.toString())
 
     // Store the refresh token
-    await prisma.refreshTokens.create({
+    await prisma.refreshToken.create({
       data: {
         token: refreshToken,
         user_id: newUser.id,
@@ -136,8 +136,8 @@ export const registerUser = async (
 
     res.status(201).json({
       user: sanitizeData(newUser),
-      accessToken,
-      refreshToken,
+      access_token: accessToken,
+      refresh_token: refreshToken,
     })
   } catch (error) {
     console.error(error)
@@ -156,7 +156,7 @@ export const refreshAccessToken = async (
     return
   }
 
-  const tokenRecord = await prisma.refreshTokens.update({
+  const tokenRecord = await prisma.refreshToken.update({
     where: { token: refreshToken },
     data: {
       updated_at: new Date(),
@@ -183,7 +183,7 @@ export const refreshAccessToken = async (
       const accessToken = generateAccessToken((decoded as any).userId)
 
       res.status(200).json({
-        accessToken,
+        access_token: accessToken,
       })
     },
   )

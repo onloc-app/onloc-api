@@ -1,5 +1,5 @@
 import type { Response } from "express"
-import { type locations } from "../generated/prisma"
+import { type Location } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { getIO } from "../socket"
@@ -9,7 +9,7 @@ import { sanitizeData } from "../utils"
 function emitAction(
   userId: BigInt,
   action: CrudAction,
-  locations: locations[],
+  locations: Location[],
 ): void {
   const io = getIO()
 
@@ -27,10 +27,9 @@ export const createLocation = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const io = getIO()
     const user = req.user
-    const location: locations = req.body
-    const device = await prisma.devices.findFirst({
+    const location: Location = req.body
+    const device = await prisma.device.findFirst({
       where: {
         id: location.device_id,
       },
@@ -46,7 +45,7 @@ export const createLocation = async (
       return
     }
 
-    const newLocation = await prisma.locations.create({
+    const newLocation = await prisma.location.create({
       data: {
         device_id: location.device_id,
         accuracy: location.accuracy,
@@ -87,7 +86,7 @@ export const readLocations = async (
       ...(device_id ? { id: Number(device_id) } : {}),
     }
 
-    const devices = await prisma.devices.findMany({
+    const devices = await prisma.device.findMany({
       where: deviceWhere,
       select: { id: true },
     })
@@ -110,14 +109,14 @@ export const readLocations = async (
       }
 
       if (latest === "true") {
-        const location = await prisma.locations.findFirst({
+        const location = await prisma.location.findFirst({
           where,
           orderBy: { created_at: "asc" },
         })
         return { device_id: id, locations: location ? [location] : [] }
       }
 
-      const locations = await prisma.locations.findMany({
+      const locations = await prisma.location.findMany({
         where,
         orderBy: { created_at: "asc" },
       })
@@ -144,7 +143,7 @@ export const readLocation = async (
       return
     }
 
-    const location = await prisma.locations.findFirst({
+    const location = await prisma.location.findFirst({
       where: {
         id: BigInt(id),
       },
@@ -168,12 +167,12 @@ export const updateLocation = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const location: locations = req.body
+    const location: Location = req.body
 
-    const existingLocation = await prisma.locations.findFirst({
+    const existingLocation = await prisma.location.findFirst({
       where: {
         id: BigInt(location.id),
-        devices: {
+        device: {
           user_id: user.id,
         },
       },
@@ -184,7 +183,7 @@ export const updateLocation = async (
       return
     }
 
-    const updatedLocation = await prisma.locations.update({
+    const updatedLocation = await prisma.location.update({
       where: { id: location.id },
       data: {
         ...location,
@@ -214,10 +213,10 @@ export const deleteLocation = async (
       return
     }
 
-    const deletedLocation = await prisma.locations.delete({
+    const deletedLocation = await prisma.location.delete({
       where: {
         id: BigInt(id),
-        devices: { user_id: user.id },
+        device: { user_id: user.id },
       },
     })
 
@@ -255,9 +254,9 @@ export const deleteLocations = async (
       return
     }
 
-    const deletedLocations = await prisma.locations.deleteMany({
+    const deletedLocations = await prisma.location.deleteMany({
       where: {
-        devices: {
+        device: {
           user_id: formattedUserId,
         },
       },
@@ -285,10 +284,10 @@ export const availableDates = async (
       return
     }
 
-    const locations = await prisma.locations.findMany({
+    const locations = await prisma.location.findMany({
       where: {
         device_id: BigInt(device_id.toString()),
-        devices: {
+        device: {
           user_id: user.id,
         },
       },

@@ -12,7 +12,7 @@ export const createApiKey = async (
     const user = req.user
     const { name } = req.body
 
-    const newApiKey = await prisma.apiKeys.create({
+    const newApiKey = await prisma.apiKey.create({
       data: {
         user_id: user.id,
         name: name,
@@ -36,13 +36,13 @@ export const readApiKeys = async (
   try {
     const user = req.user
 
-    const apiKeys = await prisma.apiKeys.findMany({
+    const apiKeys = await prisma.apiKey.findMany({
       where: {
         user_id: user.id,
       },
     })
 
-    res.status(200).json({ apiKeys: sanitizeData(apiKeys) })
+    res.status(200).json({ api_keys: sanitizeData(apiKeys) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not read api keys" })
@@ -62,7 +62,7 @@ export const deleteApiKeys = async (
       return
     }
 
-    const deleted = await prisma.apiKeys.delete({
+    const deleted = await prisma.apiKey.delete({
       where: {
         id: BigInt(id),
         user_id: user.id,

@@ -1,13 +1,13 @@
 import type { Response } from "express"
-import { type devices, type locations } from "../generated/prisma"
+import { type Device, type Location } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { getIO } from "../socket"
 import { sanitizeData } from "../utils"
 import { ringQueue } from "../services/ringQueue"
 
-interface DeviceExtra extends devices {
-  latest_location: locations | null
+interface DeviceExtra extends Device {
+  latest_location: Location | null
   is_connected: boolean
 }
 
@@ -17,9 +17,9 @@ export const createDevice = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const device: devices = req.body
+    const device: Device = req.body
 
-    const existingDevice = await prisma.devices.findFirst({
+    const existingDevice = await prisma.device.findFirst({
       where: {
         user_id: user.id,
         name: device.name,
@@ -31,7 +31,7 @@ export const createDevice = async (
       return
     }
 
-    const newDevice = await prisma.devices.create({
+    const newDevice = await prisma.device.create({
       data: {
         user_id: user.id,
         name: device.name,
@@ -56,7 +56,7 @@ export const readDevices = async (
   try {
     const user = req.user
 
-    const rawDevices = await prisma.devices.findMany({
+    const rawDevices = await prisma.device.findMany({
       where: {
         user_id: user.id,
       },
@@ -64,7 +64,7 @@ export const readDevices = async (
 
     const devices: DeviceExtra[] = await Promise.all(
       rawDevices.map(async (device) => {
-        const latest_location = await prisma.locations.findFirst({
+        const latest_location = await prisma.location.findFirst({
           where: { device_id: device.id },
           orderBy: { created_at: "desc" },
         })
@@ -96,7 +96,7 @@ export const readDevice = async (
       return
     }
 
-    const rawDevice = await prisma.devices.findFirst({
+    const rawDevice = await prisma.device.findFirst({
       where: {
         id: BigInt(id),
       },
@@ -112,7 +112,7 @@ export const readDevice = async (
       return
     }
 
-    const latest_location = await prisma.locations.findFirst({
+    const latest_location = await prisma.location.findFirst({
       where: {
         device_id: rawDevice.id,
       },
@@ -138,9 +138,9 @@ export const updateDevice = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const device: devices = req.body
+    const device: Device = req.body
 
-    const existingDevice = await prisma.devices.findFirst({
+    const existingDevice = await prisma.device.findFirst({
       where: {
         id: device.id,
         user_id: user.id,
@@ -152,7 +152,7 @@ export const updateDevice = async (
       return
     }
 
-    const updated = await prisma.devices.update({
+    const updated = await prisma.device.update({
       where: {
         id: device.id,
         user_id: user.id,
@@ -183,7 +183,7 @@ export const deleteDevice = async (
       return
     }
 
-    const deleted = await prisma.devices.delete({
+    const deleted = await prisma.device.delete({
       where: {
         id: BigInt(id),
         user_id: user.id,
@@ -215,7 +215,7 @@ export const ringDevice = async (
       return
     }
 
-    const device = await prisma.devices.findFirst({
+    const device = await prisma.device.findFirst({
       where: {
         id: BigInt(id),
         user_id: user.id,

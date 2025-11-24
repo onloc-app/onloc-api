@@ -1,14 +1,14 @@
 import type { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
 import type { ExtendedError, Socket } from "socket.io"
-import { type users } from "../generated/prisma"
+import { type User } from "../generated/prisma"
 import prisma from "../prisma"
 
 const JWT_SECRET =
   process.env.ACCESS_TOKEN_SECRET || "onloc-access-token-secret"
 
 export interface AuthenticatedRequest extends Request {
-  user: users
+  user: User
 }
 
 export const authenticate = async (
@@ -31,14 +31,14 @@ export const authenticate = async (
   }
 
   try {
-    const apiKey = await prisma.apiKeys.findFirst({
+    const apiKey = await prisma.apiKey.findFirst({
       where: {
         key: token,
       },
     })
 
     if (apiKey) {
-      const user = await prisma.users.findFirst({
+      const user = await prisma.user.findFirst({
         where: {
           id: apiKey.user_id,
         },
@@ -60,7 +60,7 @@ export const authenticate = async (
       "userId" in decoded &&
       typeof (decoded as any).userId === "string"
     ) {
-      const user = await prisma.users.findFirstOrThrow({
+      const user = await prisma.user.findFirstOrThrow({
         where: { id: decoded.userId },
       })
       if (user) {
@@ -101,7 +101,7 @@ export const authenticateIO = (
       "userId" in decoded &&
       typeof (decoded as any).userId === "string"
     ) {
-      prisma.users
+      prisma.user
         .findUnique({
           where: { id: decoded.userId },
         })

@@ -1,5 +1,5 @@
 import type { Response } from "express"
-import { type preferences } from "../generated/prisma"
+import { type Preference } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
@@ -10,7 +10,7 @@ export const createPreference = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const preference: preferences = req.body
+    const preference: Preference = req.body
     const user_id = BigInt(preference.user_id)
 
     if (user_id !== user.id) {
@@ -18,7 +18,7 @@ export const createPreference = async (
       return
     }
 
-    const existingPreference = await prisma.preferences.findFirst({
+    const existingPreference = await prisma.preference.findFirst({
       where: {
         user_id: user.id,
         key: preference.key,
@@ -30,7 +30,7 @@ export const createPreference = async (
       return
     }
 
-    const newPreference = await prisma.preferences.create({
+    const newPreference = await prisma.preference.create({
       data: {
         user_id: user.id,
         key: preference.key,
@@ -57,7 +57,7 @@ export const readPreferences = async (
 
     const fetchPreferences = async () => {
       if (key) {
-        const preference = await prisma.preferences.findFirst({
+        const preference = await prisma.preference.findFirst({
           where: {
             user_id: BigInt(user.id),
             key: String(key),
@@ -65,7 +65,7 @@ export const readPreferences = async (
         })
         return [preference]
       } else {
-        return await prisma.preferences.findMany({
+        return await prisma.preference.findMany({
           where: {
             user_id: BigInt(user.id),
           },
@@ -100,7 +100,7 @@ export const readPreference = async (
       return
     }
 
-    const preference = await prisma.preferences.findFirst({
+    const preference = await prisma.preference.findFirst({
       where: {
         id: BigInt(id),
         user_id: BigInt(user.id),
@@ -125,7 +125,7 @@ export const updatePreference = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    const preference: preferences = req.body
+    const preference: Preference = req.body
     const user_id = BigInt(preference.user_id)
 
     if (user_id !== user.id) {
@@ -133,7 +133,7 @@ export const updatePreference = async (
       return
     }
 
-    const existingPreference = await prisma.preferences.findFirst({
+    const existingPreference = await prisma.preference.findFirst({
       where: {
         id: preference.id,
         user_id: user.id,
@@ -146,7 +146,7 @@ export const updatePreference = async (
       return
     }
 
-    const updatedPreference = await prisma.preferences.update({
+    const updatedPreference = await prisma.preference.update({
       where: {
         id: preference.id,
         user_id: user.id,
@@ -178,7 +178,7 @@ export const deletePreference = async (
       return
     }
 
-    const preference = await prisma.preferences.findFirst({
+    const preference = await prisma.preference.findFirst({
       where: {
         id: BigInt(id),
         user_id: user.id,
@@ -190,7 +190,7 @@ export const deletePreference = async (
       return
     }
 
-    await prisma.preferences.delete({
+    await prisma.preference.delete({
       where: {
         id: preference.id,
       },

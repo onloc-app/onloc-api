@@ -1,6 +1,6 @@
 import type { Server as HTTPServer } from "http"
 import { Server as SocketIOServer, type ServerOptions } from "socket.io"
-import type { users } from "./generated/prisma"
+import type { User } from "./generated/prisma"
 import { authenticateIO } from "./middlewares/auth"
 import prisma from "./prisma"
 import { ringQueue } from "./services/ringQueue"
@@ -17,7 +17,7 @@ export function createIO(
   io.use(authenticateIO)
 
   io.on("connection", (socket) => {
-    const user = socket.data.user as users
+    const user = socket.data.user as User
     if (!user) {
       console.log("No user attached to socket")
       socket.disconnect()
@@ -27,7 +27,7 @@ export function createIO(
     console.log(`New client connected: ${socket.id}`)
 
     socket.on("register-device", async ({ deviceId }) => {
-      const device = await prisma.devices.findUnique({
+      const device = await prisma.device.findUnique({
         where: { id: deviceId },
       })
       if (!device) return socket.emit("error", "Device not found")
@@ -49,7 +49,7 @@ export function createIO(
     })
 
     socket.on("unregister-device", async ({ deviceId }) => {
-      const device = await prisma.devices.findUnique({
+      const device = await prisma.device.findUnique({
         where: { id: deviceId },
       })
       if (!device) return socket.emit("error", "Device not found")
@@ -60,7 +60,7 @@ export function createIO(
     })
 
     socket.on("ring", async ({ deviceId }) => {
-      const device = await prisma.devices.findUnique({
+      const device = await prisma.device.findUnique({
         where: { id: deviceId },
       })
       if (!device) return socket.emit("error", "Device not found")
