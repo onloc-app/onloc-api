@@ -145,7 +145,6 @@ export const updateTier = async (
       return
     }
 
-    console.log(tier.max_devices)
     const updated = await prisma.tier.update({
       where: {
         id: tier.id,
