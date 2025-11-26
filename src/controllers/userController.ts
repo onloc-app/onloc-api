@@ -15,36 +15,47 @@ export const readUsers = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const reqUser = req.user
 
-    if (!user.admin) {
+    if (!reqUser.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
-    const rawUsers = await prisma.user.findMany()
+    const rawUsers = await prisma.user.findMany({
+      include: {
+        userTiers: {
+          include: {
+            tier: true,
+          },
+        },
+        devices: {
+          select: {
+            id: true,
+            locations: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    })
 
     const users: UserExtra[] = await Promise.all(
       rawUsers.map(async (user) => {
-        const devices = await prisma.device.findMany({
-          where: { user_id: user.id },
-        })
-
-        const locationCounts = await Promise.all(
-          devices.map((device) =>
-            prisma.location.count({ where: { device_id: device.id } }),
-          ),
-        )
-
-        const numberOfLocations = locationCounts.reduce(
-          (sum, count) => sum + count,
-          0,
-        )
-
         return {
-          ...user,
-          number_of_devices: devices.length,
-          number_of_locations: numberOfLocations,
+          id: user.id,
+          username: user.username,
+          admin: user.admin,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+          tier: user.userTiers[0]?.tier ?? null,
+          number_of_devices: user.devices.length,
+          number_of_locations: user.devices.reduce(
+            (sum, device) => sum + device.locations.length,
+            0,
+          ),
         }
       }),
     )

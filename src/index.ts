@@ -14,6 +14,7 @@ import settingRoutes from "./routes/settingRoutes"
 import tierRoutes from "./routes/tierRoutes"
 import tokenRoutes from "./routes/tokenRoutes"
 import userRoutes from "./routes/userRoutes"
+import userTierRoutes from "./routes/userTierRoutes"
 import { createIO } from "./socket"
 
 const app = express()
@@ -40,6 +41,7 @@ app.use("/api/tokens", tokenRoutes)
 app.use("/api/preferences", preferenceRoutes)
 app.use("/api/apikeys", apiKeyRoutes)
 app.use("/api/tiers", tierRoutes)
+app.use("/api/usertiers", userTierRoutes)
 
 app.get("/api/status", async (req, res) => {
   try {
