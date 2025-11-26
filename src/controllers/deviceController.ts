@@ -5,6 +5,7 @@ import prisma from "../prisma"
 import { getIO } from "../socket"
 import { sanitizeData } from "../utils"
 import { ringQueue } from "../services/ringQueue"
+import { checkPermissions } from "./userTierController"
 
 interface DeviceExtra extends Device {
   latest_location: Location | null
@@ -29,6 +30,21 @@ export const createDevice = async (
     if (existingDevice) {
       res.status(400).json({ message: "Device already exists" })
       return
+    }
+
+    if (!user.admin) {
+      const deviceCount = await prisma.device.count({
+        where: { user_id: user.id },
+      })
+      const permissions = await checkPermissions(user.id)
+      if (permissions && permissions.maxDevices !== null) {
+        if (deviceCount >= permissions.maxDevices) {
+          res
+            .status(403)
+            .json({ message: "Max devices allowed for this account reached" })
+          return
+        }
+      }
     }
 
     const newDevice = await prisma.device.create({

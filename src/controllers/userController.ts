@@ -104,7 +104,22 @@ export const readUserInfo = async (
 ): Promise<void> => {
   try {
     const user = req.user
-    res.status(200).json({ user: sanitizeData(user) })
+
+    const userTier = await prisma.userTier.findFirst({
+      where: {
+        user_id: user.id,
+      },
+      include: {
+        tier: true,
+      },
+    })
+
+    const userExtra = {
+      ...user,
+      tier: userTier?.tier,
+    }
+
+    res.status(200).json({ user: sanitizeData(userExtra) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not read user" })

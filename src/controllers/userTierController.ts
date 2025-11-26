@@ -1,6 +1,6 @@
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import type { UserTier } from "../generated/prisma"
+import type { Tier, UserTier } from "../generated/prisma"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
 
@@ -87,4 +87,23 @@ export const readUserTiers = async (
     console.error(error)
     res.status(500).json({ message: "Could not read user-tiers" })
   }
+}
+
+export async function checkPermissions(
+  userId: bigint,
+): Promise<{ maxDevices: number | null } | null> {
+  const userTier = await prisma.userTier.findFirst({
+    where: {
+      user_id: userId,
+    },
+    include: {
+      tier: true,
+    },
+  })
+
+  if (!userTier) {
+    return null
+  }
+
+  return { maxDevices: userTier.tier.max_devices }
 }
