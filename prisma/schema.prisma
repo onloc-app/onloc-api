@@ -102,6 +102,7 @@ model ApiKey {
 
 model Tier {
   id          BigInt     @id @default(autoincrement())
+  order_rank  Int?       @default(autoincrement())
   name        String     @unique(map: "tiers_key_unique")
   max_devices Int?
   created_at  DateTime   @db.Timestamp(0)

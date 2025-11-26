@@ -198,3 +198,44 @@ export const deleteTier = async (
     res.status(500).json({ message: "Could not delete tier" })
   }
 }
+
+export const reorderTiers = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user
+    const tiers: Tier[] = req.body
+
+    if (!user.admin) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
+
+    if (!Array.isArray(tiers) || tiers.length === 0) {
+      res.status(400).json({ message: "Invalid payload" })
+      return
+    }
+    const ranks = tiers.map((tier) => tier.order_rank)
+    if (new Set(ranks).size !== ranks.length) {
+      res.status(400).json({ message: "Order ranks values must be unique" })
+      return
+    }
+
+    for (const tier of tiers) {
+      await prisma.tier.update({
+        where: {
+          id: tier.id,
+        },
+        data: {
+          order_rank: tier.order_rank,
+        },
+      })
+    }
+
+    res.status(200).send()
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not reorder tiers" })
+  }
+}
