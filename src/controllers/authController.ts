@@ -149,10 +149,10 @@ export const refreshAccessToken = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { refreshToken } = req.body
+  const { refresh_token: refreshToken } = req.body
 
   if (!refreshToken) {
-    res.status(401).json({ message: "Refresh token is required" })
+    res.status(400).json({ message: "Refresh token is required" })
     return
   }
 
