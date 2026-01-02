@@ -59,6 +59,8 @@ app.get("/api/status", async (req, res) => {
 const server = http.createServer(app)
 createIO(server, { path: "/ws", cors: { origin: "*" } })
 
+// Swagger
+
 const bonjour = new Bonjour()
 
 server.listen(PORT, () => {
