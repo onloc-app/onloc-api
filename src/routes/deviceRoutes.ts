@@ -101,9 +101,9 @@ router.get("/", readDevices)
  *         in: path
  *         required: true
  *         schema:
- *           type: integer
- *           format: int64
+ *           type: string
  *         description: Device ID
+ *         example: "123"
  *     responses:
  *       200:
  *         description: Device details
@@ -145,8 +145,7 @@ router.get("/:id", readDevice)
  *             required: [id]
  *             properties:
  *               id:
- *                 type: integer
- *                 format: int64
+ *                 type: string
  *               name:
  *                 type: string
  *               icon:
@@ -187,9 +186,9 @@ router.patch("/", updateDevice)
  *         in: path
  *         required: true
  *         schema:
- *           type: integer
- *           format: int64
+ *           type: string
  *         description: Device ID to delete
+ *         example: "123"
  *     responses:
  *       204:
  *         description: Device deleted successfully (no content)
@@ -219,9 +218,9 @@ router.delete("/:id", deleteDevice)
  *         in: path
  *         required: true
  *         schema:
- *           type: integer
- *           format: int64
+ *           type: string
  *         description: Device ID
+ *         example: "123"
  *     responses:
  *       200:
  *         description: Ring command sent (device online)

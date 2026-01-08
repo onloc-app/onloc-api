@@ -79,7 +79,7 @@ app.get("/api/status", async (req, res) => {
 // Swagger
 const swaggerOptions: Options = {
   definition: {
-    openapi: "3.1.0",
+    openapi: "3.0.0",
     info: {
       title: "Onloc API",
       version: "1.1.0",

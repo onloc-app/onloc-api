@@ -62,7 +62,7 @@ router.post("/", createApiKey)
  * /api/apikeys:
  *   get:
  *     summary: List all API keys for the current user
- *     description: Returns all API keys belonging to the authenticated user. The actual key value is never returned in this endpoint for security.
+ *     description: Returns all API keys belonging to the authenticated user.
  *     tags: [API Keys]
  *     security:
  *       - bearerAuth: []
@@ -75,7 +75,9 @@ router.post("/", createApiKey)
  *               type: object
  *               properties:
  *                 api_keys:
- *                   $ref: "#/components/schemas/ApiKeyList"
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/ApiKeySafe"
  *       401:
  *         $ref: "#/components/responses/Unauthorized"
  *       500:
@@ -96,11 +98,10 @@ router.get("/", readApiKeys)
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
- *           format: int64
+ *           type: string
  *         required: true
  *         description: The API key ID to delete
- *         example: 123
+ *         example: "123"
  *     responses:
  *       204:
  *         description: API key deleted successfully (no content)
