@@ -5,7 +5,8 @@ import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
 
-interface UserExtra extends User {
+type UserSafe = Omit<User, "password">
+interface UserExtra extends UserSafe {
   number_of_devices: number
   number_of_locations: number
 }
