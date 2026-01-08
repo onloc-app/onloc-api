@@ -3,6 +3,8 @@ import chalk from "chalk"
 import cors from "cors"
 import express from "express"
 import http from "http"
+import swaggerUi from "swagger-ui-express"
+import swaggerJSDoc, { type Options } from "swagger-jsdoc"
 import { isRegistrationEnabled, isSetup } from "./helpers/statusHelper"
 import logRequest from "./middlewares/logging"
 import apiKeyRoutes from "./routes/apiKeyRoutes"
@@ -43,6 +45,25 @@ app.use("/api/apikeys", apiKeyRoutes)
 app.use("/api/tiers", tierRoutes)
 app.use("/api/usertiers", userTierRoutes)
 
+/**
+ * @openapi
+ * /api/status:
+ *  get:
+ *    summary: Basic information on the server
+ *    tags: [Status]
+ *    responses:
+ *      200:
+ *        description: Server status information
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                isSetup:
+ *                  type: boolean
+ *                registration:
+ *                  type: boolean
+ */
 app.get("/api/status", async (req, res) => {
   try {
     res.status(200).json({
@@ -55,11 +76,42 @@ app.get("/api/status", async (req, res) => {
   }
 })
 
+// Swagger
+const swaggerOptions: Options = {
+  definition: {
+    openapi: "3.1.0",
+    info: {
+      title: "Onloc API",
+      version: "1.1.0",
+    },
+    servers: [
+      {
+        url: `http://localhost:${PORT}`,
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+  },
+  apis: ["./src/**/*.ts", "./src/openapi/*.yaml"],
+}
+
+const swaggerDocs = swaggerJSDoc(swaggerOptions)
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocs, { explorer: true }),
+)
+
 // Websockets
 const server = http.createServer(app)
 createIO(server, { path: "/ws", cors: { origin: "*" } })
-
-// Swagger
 
 const bonjour = new Bonjour()
 

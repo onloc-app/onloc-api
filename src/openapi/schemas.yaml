@@ -1,0 +1,204 @@
+components:
+  schemas:
+    UserSafe:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        admin:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - username
+        - admin
+        - created_at
+        - updated_at
+
+    AuthTokens:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/UserSafe"
+        access_token:
+          type: string
+          description: JWT access token (short-lived)
+        refresh_token:
+          type: string
+          description: JWT refresh token (long-lived)
+      required:
+        - user
+        - access_token
+        - refresh_token
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+      required:
+        - access_token
+
+    ApiKeySafe:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: API key ID
+        name:
+          type: string
+        key:
+          type: string
+          description: The full API key
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - key
+        - created_at
+        - updated_at
+
+    ApiKeyList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+          name:
+            type: string
+          created_at:
+            type: string
+            format: date-time
+          updated_at:
+            type: string
+            format: date-time
+        required:
+          - id
+          - name
+          - created_at
+          - updated_at
+
+    DeviceSafe:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        user_id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        icon:
+          type: string
+          nullable: true
+        can_ring:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - name
+        - can_ring
+        - created_at
+        - updated_at
+
+    LocationSafe:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        device_id:
+          type: integer
+          format: int64
+        latitude:
+          type: number
+        longitude:
+          type: number
+        accuracy:
+          type: number
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - device_id
+        - latitude
+        - longitude
+        - created_at
+
+    DeviceWithExtras:
+      allOf:
+        - $ref: "#/components/schemas/DeviceSafe"
+        - type: object
+          properties:
+            latest_location:
+              $ref: "#/components/schemas/LocationSafe"
+              nullable: true
+            is_connected:
+              type: boolean
+          required:
+            - is_connected
+
+  responses:
+    Unauthorized:
+      description: Access token missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
