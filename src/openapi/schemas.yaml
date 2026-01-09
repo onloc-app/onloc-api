@@ -142,7 +142,6 @@ components:
         - longitude
         - created_at
 
-    # Reusable request bodies for locations
     LocationCreate:
       type: object
       description: Payload to create a new location for a device
@@ -228,6 +227,205 @@ components:
         altitude_accuracy: 1.0
         battery: 78
 
+    Preference:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        key:
+          type: string
+          description: Preference key
+        value:
+          type: string
+          description: Preference value
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - key
+        - value
+        - created_at
+        - updated_at
+
+    PreferenceCreate:
+      type: object
+      description: Payload to create a preference
+      required:
+        - user_id
+        - key
+        - value
+      properties:
+        user_id:
+          type: string
+          example: "123"
+        key:
+          type: string
+          example: "theme"
+        value:
+          type: string
+          example: "dark"
+      example:
+        user_id: "123"
+        key: "theme"
+        value: "dark"
+
+    PreferenceUpdate:
+      type: object
+      description: Payload to update an existing preference
+      required:
+        - id
+        - user_id
+        - key
+      properties:
+        id:
+          type: string
+          example: "789"
+        user_id:
+          type: string
+        key:
+          type: string
+        value:
+          type: string
+      example:
+        id: "789"
+        user_id: "123"
+        key: "theme"
+        value: "light"
+
+    Setting:
+      type: object
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+          description: Setting key
+        value:
+          type: string
+          description: Setting value
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - key
+        - value
+        - created_at
+        - updated_at
+
+    SettingCreate:
+      type: object
+      description: Payload to create a new setting (admin only)
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          example: "site_name"
+        value:
+          type: string
+          example: "Onloc Server"
+      example:
+        key: "site_name"
+        value: "Onloc Server"
+
+    SettingUpdate:
+      type: object
+      description: Payload to update an existing setting (admin only)
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: Setting ID
+          example: "321"
+        key:
+          type: string
+        value:
+          type: string
+      example:
+        id: "321"
+        key: "site_name"
+        value: "Onloc API"
+
+    Tier:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        max_devices:
+          type: integer
+        order_rank:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - max_devices
+        - created_at
+        - updated_at
+
+    TierCreate:
+      type: object
+      description: Payload to create a new tier (admin only)
+      required:
+        - name
+        - max_devices
+      properties:
+        name:
+          type: string
+          example: "Pro"
+        max_devices:
+          type: integer
+          example: 10
+        order_rank:
+          type: integer
+          nullable: true
+      example:
+        name: "Pro"
+        max_devices: 10
+        order_rank: 2
+
+    TierUpdate:
+      type: object
+      description: Payload to update an existing tier (admin only)
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          example: "123"
+        name:
+          type: string
+        max_devices:
+          type: integer
+        order_rank:
+          type: integer
+      example:
+        id: "123"
+        name: "Pro"
+        max_devices: 10
+        order_rank: 1
+
     DeviceWithExtras:
       allOf:
         - $ref: "#/components/schemas/DeviceSafe"
@@ -240,6 +438,150 @@ components:
               type: boolean
           required:
             - is_connected
+
+    RefreshToken:
+      type: object
+      description: A stored refresh token record
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        token:
+          type: string
+        agent:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - token
+        - created_at
+        - updated_at
+
+    RefreshTokenDelete:
+      type: object
+      description: Request body to delete a refresh token by value
+      properties:
+        refresh_token:
+          type: string
+      required:
+        - refresh_token
+      example:
+        refresh_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    RefreshTokenList:
+      type: object
+      properties:
+        tokens:
+          type: array
+          items:
+            $ref: "#/components/schemas/RefreshToken"
+
+    UserWithExtras:
+      type: object
+      description: User data with additional computed fields
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        admin:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        tier:
+          $ref: "#/components/schemas/Tier"
+          nullable: true
+        number_of_devices:
+          type: integer
+        number_of_locations:
+          type: integer
+      required:
+        - id
+        - username
+        - admin
+        - created_at
+        - updated_at
+
+    UserList:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserWithExtras"
+
+    UserUpdate:
+      type: object
+      description: Payload to update a user (partial)
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        admin:
+          type: boolean
+      example:
+        username: "newuser"
+        password: "newpassword"
+        admin: false
+
+    UserTier:
+      type: object
+      description: Link between a user and a tier
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        tier_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - tier_id
+        - created_at
+        - updated_at
+
+    UserTierCreate:
+      type: object
+      description: Payload to assign a tier to a user (admin only)
+      required:
+        - user_id
+        - tier_id
+      properties:
+        user_id:
+          type: string
+        tier_id:
+          type: string
+      example:
+        user_id: "123"
+        tier_id: "456"
+
+    UserTierList:
+      type: object
+      properties:
+        user_tiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserTier"
 
   responses:
     Unauthorized:
