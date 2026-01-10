@@ -119,6 +119,26 @@ export const registerUser = async (
       },
     })
 
+    const defaultTier = await prisma.setting.findFirst({
+      where: { key: "default_tier" },
+    })
+
+    if (defaultTier) {
+      const tier = await prisma.tier.findUnique({
+        where: { id: parseInt(defaultTier.value) },
+      })
+      if (tier) {
+        await prisma.userTier.create({
+          data: {
+            user_id: newUser.id,
+            tier_id: tier.id,
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        })
+      }
+    }
+
     // Generate the tokens
     const accessToken = generateAccessToken(newUser.id.toString())
     const refreshToken = generateRefreshToken(newUser.id.toString())
