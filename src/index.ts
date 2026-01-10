@@ -84,11 +84,6 @@ const swaggerOptions: Options = {
       title: "Onloc API",
       version: "1.1.0",
     },
-    servers: [
-      {
-        url: `http://localhost:${PORT}`,
-      },
-    ],
     components: {
       securitySchemes: {
         bearerAuth: {
