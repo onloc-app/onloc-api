@@ -8,7 +8,7 @@
 
 ## Description
 
-Onloc is a service that allows you to track and locate your devices. This repository contains the Laravel back-end used for storing and retrieving Onloc's data.
+Onloc is a service that allows you to track and locate your devices. This repository contains the back-end used for storing and retrieving Onloc's data.
 
 > [!NOTE]
 > You can find the other repositories here:
