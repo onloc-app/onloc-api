@@ -181,6 +181,19 @@ export const deleteTier = async (
       return
     }
 
+    // Delete default tier setting if the deleted tier is the default one
+    const defaultTier = await prisma.setting.findFirst({
+      where: { key: "default_tier" },
+    })
+
+    if (defaultTier?.value === id) {
+      const deletedDefaultTier = await prisma.setting.delete({
+        where: {
+          id: defaultTier.id,
+        },
+      })
+    }
+
     const deleted = await prisma.tier.delete({
       where: {
         id: BigInt(id),
