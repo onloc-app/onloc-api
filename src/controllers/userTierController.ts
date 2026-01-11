@@ -1,6 +1,6 @@
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import type { Tier, UserTier } from "../generated/prisma"
+import type { UserTier } from "../generated/prisma"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
 

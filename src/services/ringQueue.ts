@@ -5,19 +5,19 @@ class RingQueue {
     return this.instance
   }
 
-  private list: Array<BigInt> = []
+  private list: Array<bigint> = []
 
-  public add(deviceId: BigInt): void {
+  public add(deviceId: bigint): void {
     if (!this.list.includes(deviceId)) {
       this.list.push(deviceId)
     }
   }
 
-  public remove(deviceId: BigInt): void {
+  public remove(deviceId: bigint): void {
     this.list = this.list.filter((id) => id !== deviceId)
   }
 
-  public has(deviceId: BigInt): boolean {
+  public has(deviceId: bigint): boolean {
     return this.list.includes(deviceId)
   }
 }

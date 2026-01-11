@@ -113,7 +113,7 @@ export const registerUser = async (
       data: {
         username,
         password: hashedPassword,
-        admin: !!existingAdmin ? false : true,
+        admin: existingAdmin ? false : true,
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -200,7 +200,7 @@ export const refreshAccessToken = async (
         return
       }
 
-      const accessToken = generateAccessToken((decoded as any).userId)
+      const accessToken = generateAccessToken((decoded as JwtPayload).userId)
 
       res.status(200).json({
         access_token: accessToken,

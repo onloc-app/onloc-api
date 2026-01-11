@@ -187,7 +187,7 @@ export const deleteTier = async (
     })
 
     if (defaultTier?.value === id) {
-      const deletedDefaultTier = await prisma.setting.delete({
+      await prisma.setting.delete({
         where: {
           id: defaultTier.id,
         },

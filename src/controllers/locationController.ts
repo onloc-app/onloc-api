@@ -7,7 +7,7 @@ import type { CrudAction } from "../types"
 import { sanitizeData } from "../utils"
 
 function emitAction(
-  userId: BigInt,
+  userId: bigint,
   action: CrudAction,
   locations: Location[],
 ): void {
@@ -102,7 +102,7 @@ export const readLocations = async (
       ...(end_date ? { lte: new Date(end_date.toString()) } : {}),
     }
 
-    const fetchLocations = async (id: BigInt) => {
+    const fetchLocations = async (id: bigint) => {
       const where = {
         device_id: Number(id),
         ...(start_date || end_date ? { created_at: dateRange } : {}),

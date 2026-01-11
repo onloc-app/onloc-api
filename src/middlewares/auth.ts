@@ -58,10 +58,10 @@ export const authenticate = async (
       typeof decoded === "object" &&
       decoded !== null &&
       "userId" in decoded &&
-      typeof (decoded as any).userId === "string"
+      typeof decoded.userId === "string"
     ) {
       const user = await prisma.user.findFirstOrThrow({
-        where: { id: decoded.userId },
+        where: { id: BigInt(decoded.userId) },
       })
       if (user) {
         req.user = user
@@ -75,7 +75,7 @@ export const authenticate = async (
       res.status(401).json({ message: "Invalid token payload" })
       return
     }
-  } catch (error) {
+  } catch {
     res.status(401).json({ message: "Invalid or expired token" })
     return
   }
@@ -99,11 +99,11 @@ export const authenticateIO = (
       typeof decoded === "object" &&
       decoded !== null &&
       "userId" in decoded &&
-      typeof (decoded as any).userId === "string"
+      typeof decoded.userId === "string"
     ) {
       prisma.user
         .findUnique({
-          where: { id: decoded.userId },
+          where: { id: BigInt(decoded.userId) },
         })
         .then((user) => {
           if (!user) {
@@ -121,7 +121,7 @@ export const authenticateIO = (
       next(new Error("Invalid token payload"))
       return
     }
-  } catch (error) {
+  } catch {
     next(new Error("Invalid or expired token"))
     return
   }

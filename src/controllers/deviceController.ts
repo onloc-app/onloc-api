@@ -266,7 +266,7 @@ export const ringDevice = async (
   }
 }
 
-export const checkConnection = async (id: BigInt) => {
+export const checkConnection = async (id: bigint) => {
   const roomName = `device-${id}`
   const socketsInRoom = await getIO().in(roomName).fetchSockets()
   return socketsInRoom.length > 0

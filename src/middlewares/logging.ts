@@ -26,9 +26,9 @@ const logRequest = (req: Request, res: Response, next: NextFunction): void => {
   const url = req.originalUrl
 
   const coloredLog = `${chalk.yellow("[")}${chalk.gray(
-    timestamp
+    timestamp,
   )}${chalk.yellow("]")} ${chalk.white("Incoming request:")} ${chalk.cyan(
-    method
+    method,
   )} ${chalk.green(url)}`
   const basicLog = `[${timestamp}] Incoming request: ${method} ${url}`
 
@@ -36,7 +36,7 @@ const logRequest = (req: Request, res: Response, next: NextFunction): void => {
   logToFile(basicLog)
 
   const originalSend = res.send
-  res.send = function (body: any) {
+  res.send = function (body) {
     const endTime = Date.now()
     const duration = endTime - startTime
 
@@ -51,7 +51,7 @@ const logRequest = (req: Request, res: Response, next: NextFunction): void => {
     }
 
     const coloredLog = `${chalk.yellow("[")}${chalk.gray(
-      timestamp
+      timestamp,
     )}${chalk.yellow("]")} ${chalk.white("Time taken:")} ${durationColor}`
     const basicLog = `[${timestamp}] Time taken: ${durationStr}`
 
