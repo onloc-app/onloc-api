@@ -26,21 +26,21 @@ export function createIO(
 
     console.log(`New client connected: ${socket.id}`)
 
-    socket.on("register-device", async ({ deviceId }) => {
+    socket.on("register-device", async ({ device_id }) => {
       const device = await prisma.device.findUnique({
-        where: { id: deviceId },
+        where: { id: device_id },
       })
       if (!device) return socket.emit("error", "Device not found")
       if (device.user_id !== user.id) {
         return socket.emit("error", "You do not own this device")
       }
 
-      socket.join(`device-${deviceId}`)
-      io!.to(`user_${user.id}`).emit("connections_change")
-      console.log(`Device ${deviceId} joined room`)
+      socket.join(`device-${device_id}`)
+      io!.to(`user_${user.id}`).emit("connections-change")
+      console.log(`Device ${device_id} joined room`)
 
       // Ring the device if it's in the queue
-      const formattedDeviceId = BigInt(deviceId)
+      const formattedDeviceId = BigInt(device_id)
       if (ringQueue.has(formattedDeviceId)) {
         io!.to(`device-${formattedDeviceId}`).emit("ring-command")
         console.log(`Sent queued ring to ${formattedDeviceId}`)
@@ -48,28 +48,28 @@ export function createIO(
       }
     })
 
-    socket.on("unregister-device", async ({ deviceId }) => {
+    socket.on("unregister-device", async ({ device_id }) => {
       const device = await prisma.device.findUnique({
-        where: { id: deviceId },
+        where: { id: device_id },
       })
       if (!device) return socket.emit("error", "Device not found")
 
-      socket.leave(`device-${deviceId}`)
-      io!.to(`user_${user.id}`).emit("connections_change")
-      console.log(`Device ${deviceId} left room`)
+      socket.leave(`device-${device_id}`)
+      io!.to(`user_${user.id}`).emit("connections-change")
+      console.log(`Device ${device_id} left room`)
     })
 
-    socket.on("ring", async ({ deviceId }) => {
+    socket.on("ring", async ({ device_id }) => {
       const device = await prisma.device.findUnique({
-        where: { id: deviceId },
+        where: { id: device_id },
       })
       if (!device) return socket.emit("error", "Device not found")
       if (device.user_id !== user.id) {
         return socket.emit("error", "You do not own this device")
       }
 
-      io!.to(`device-${deviceId}`).emit("ring-command")
-      console.log(`Sent ring to device ${deviceId}`)
+      io!.to(`device-${device_id}`).emit("ring-command")
+      console.log(`Sent ring to device ${device_id}`)
     })
 
     socket.on("disconnect", () => {

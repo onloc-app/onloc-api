@@ -18,8 +18,8 @@ function emitAction(
     locations: locations,
   }
 
-  io.to(`user_${userId.toString()}`).emit("locations_change", data)
-  io.to(`admin`).emit("admin_locations_change", data)
+  io.to(`user_${userId.toString()}`).emit("locations-change", data)
+  io.to(`admin`).emit("admin-locations-change", data)
 }
 
 export const createLocation = async (
