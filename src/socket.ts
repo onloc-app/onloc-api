@@ -4,6 +4,7 @@ import type { User } from "./generated/prisma"
 import { authenticateIO } from "./middlewares/auth"
 import prisma from "./prisma"
 import { ringQueue } from "./services/ringQueue"
+import { lockQueue } from "./services/lockQueue"
 
 let io: SocketIOServer | null = null
 
@@ -39,12 +40,23 @@ export function createIO(
       io!.to(`user_${user.id}`).emit("connections-change")
       console.log(`Device ${device_id} joined room`)
 
-      // Ring the device if it's in the queue
       const formattedDeviceId = BigInt(device_id)
+
+      // Ring the device if it's in the queue
       if (ringQueue.has(formattedDeviceId)) {
         io!.to(`device-${formattedDeviceId}`).emit("ring-command")
         console.log(`Sent queued ring to ${formattedDeviceId}`)
         ringQueue.remove(formattedDeviceId)
+      }
+
+      // Lock the device if it's in the queue
+      if (lockQueue.has(formattedDeviceId)) {
+        const message = lockQueue.getMessage(formattedDeviceId)
+        io!
+          .to(`device-${formattedDeviceId}`)
+          .emit("lock-command", { message: message })
+        console.log(`Sent queued lock to ${formattedDeviceId}`)
+        lockQueue.remove(formattedDeviceId)
       }
     })
 

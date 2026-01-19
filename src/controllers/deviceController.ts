@@ -6,6 +6,7 @@ import { getIO } from "../socket"
 import { sanitizeData } from "../utils"
 import { ringQueue } from "../services/ringQueue"
 import { checkPermissions } from "./userTierController"
+import { lockQueue } from "../services/lockQueue"
 
 interface DeviceExtra extends Device {
   latest_location: Location | null
@@ -263,6 +264,55 @@ export const ringDevice = async (
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not ring device" })
+  }
+}
+
+export const lockDevice = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user
+    const { id } = req.params
+    const { message } = req.body ?? {}
+
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
+
+    const device = await prisma.device.findFirst({
+      where: {
+        id: BigInt(id),
+        user_id: user.id,
+      },
+    })
+
+    if (!device) {
+      res.status(404).json({ message: "Device not found" })
+      return
+    }
+
+    if (!device.can_lock) {
+      res.status(403).json({ message: "Device cannot be locked" })
+      return
+    }
+
+    if (!(await checkConnection(BigInt(id)))) {
+      lockQueue.add(BigInt(id), message)
+      console.log(`Added ${id} to lock queue`)
+      res.status(202).send()
+      return
+    }
+
+    const io = getIO()
+    io.to(`device-${id}`).emit("lock-command", { message: message })
+    console.log(`Sent lock to ${id}`)
+
+    res.status(200).send()
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not lock device" })
   }
 }
 

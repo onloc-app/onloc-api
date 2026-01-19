@@ -1,13 +1,14 @@
 import { Router } from "express"
-import { authenticate } from "../middlewares/auth"
 import {
   createDevice,
   deleteDevice,
+  lockDevice,
   readDevice,
   readDevices,
   ringDevice,
   updateDevice,
 } from "../controllers/deviceController"
+import { authenticate } from "../middlewares/auth"
 
 const router = Router()
 router.use(authenticate)
@@ -238,5 +239,54 @@ router.delete("/:id", deleteDevice)
  *         $ref: "#/components/responses/InternalError"
  */
 router.post("/:id/ring", ringDevice)
+
+/**
+ * @openapi
+ * /api/devices/{id}/lock:
+ *   post:
+ *     summary: Send lock command to device
+ *     description: |
+ *       Triggers a remote lock command for the specified device. If the device supports remote locking
+ *       and is currently online the command is delivered immediately. If the device is offline the
+ *       command will be queued for delivery when the device next comes online.
+ *     tags: [Devices]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Device ID
+ *         example: "123"
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 nullable: true
+ *                 description: Optional user message displayed on the device when locking
+ *     responses:
+ *       200:
+ *         description: Lock command sent (device online)
+ *       202:
+ *         description: Lock command queued (device offline)
+ *       400:
+ *         $ref: "#/components/responses/BadRequest"
+ *       403:
+ *         $ref: "#/components/responses/Forbidden"
+ *       404:
+ *         $ref: "#/components/responses/NotFound"
+ *       401:
+ *         $ref: "#/components/responses/Unauthorized"
+ *       500:
+ *         $ref: "#/components/responses/InternalError"
+ */
+router.post("/:id/lock", lockDevice)
 
 export default router
