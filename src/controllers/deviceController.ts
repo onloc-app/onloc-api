@@ -18,7 +18,7 @@ export const createDevice = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const device: Device = req.body
 
     const existingDevice = await prisma.device.findFirst({
@@ -71,7 +71,7 @@ export const readDevices = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
 
     const rawDevices = await prisma.device.findMany({
       where: {
@@ -105,7 +105,7 @@ export const readDevice = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -115,7 +115,7 @@ export const readDevice = async (
 
     const rawDevice = await prisma.device.findFirst({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
       },
     })
 
@@ -154,7 +154,7 @@ export const updateDevice = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const device: Device = req.body
 
     const existingDevice = await prisma.device.findFirst({
@@ -192,7 +192,7 @@ export const deleteDevice = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -202,7 +202,7 @@ export const deleteDevice = async (
 
     const deleted = await prisma.device.delete({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
         user_id: user.id,
       },
     })
@@ -224,7 +224,7 @@ export const ringDevice = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -234,7 +234,7 @@ export const ringDevice = async (
 
     const device = await prisma.device.findFirst({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
         user_id: user.id,
       },
     })
@@ -249,8 +249,8 @@ export const ringDevice = async (
       return
     }
 
-    if (!(await checkConnection(BigInt(id)))) {
-      ringQueue.add(BigInt(id))
+    if (!(await checkConnection(BigInt(id as string)))) {
+      ringQueue.add(BigInt(id as string))
       console.log(`Added ${id} to ring queue`)
       res.status(202).send()
       return
@@ -272,7 +272,7 @@ export const lockDevice = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
     const { message } = req.body ?? {}
 
@@ -283,7 +283,7 @@ export const lockDevice = async (
 
     const device = await prisma.device.findFirst({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
         user_id: user.id,
       },
     })
@@ -298,8 +298,8 @@ export const lockDevice = async (
       return
     }
 
-    if (!(await checkConnection(BigInt(id)))) {
-      lockQueue.add(BigInt(id), message)
+    if (!(await checkConnection(BigInt(id as string)))) {
+      lockQueue.add(BigInt(id as string), message)
       console.log(`Added ${id} to lock queue`)
       res.status(202).send()
       return

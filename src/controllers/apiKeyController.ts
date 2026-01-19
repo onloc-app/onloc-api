@@ -9,7 +9,7 @@ export const createApiKey = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { name } = req.body
 
     const newApiKey = await prisma.apiKey.create({
@@ -34,7 +34,7 @@ export const readApiKeys = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
 
     const apiKeys = await prisma.apiKey.findMany({
       where: {
@@ -54,7 +54,7 @@ export const deleteApiKeys = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -64,7 +64,7 @@ export const deleteApiKeys = async (
 
     const deleted = await prisma.apiKey.delete({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
         user_id: user.id,
       },
     })

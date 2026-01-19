@@ -9,7 +9,7 @@ export const createSetting = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const setting: Setting = req.body
 
     if (!user.admin) {
@@ -49,7 +49,7 @@ export const readSettings = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
 
     if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
@@ -75,7 +75,7 @@ export const readSetting = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!user.admin) {
@@ -90,7 +90,7 @@ export const readSetting = async (
 
     const setting = await prisma.setting.findFirst({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
       },
     })
 
@@ -111,7 +111,7 @@ export const updateSetting = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const setting: Setting = req.body
 
     if (!user.admin) {
@@ -154,7 +154,7 @@ export const deleteSetting = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!user.admin) {
@@ -168,7 +168,7 @@ export const deleteSetting = async (
     }
 
     const setting = await prisma.setting.findFirst({
-      where: { id: BigInt(id) },
+      where: { id: BigInt(id as string) },
     })
 
     if (!setting) {

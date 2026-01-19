@@ -27,7 +27,7 @@ export const createLocation = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const location: Location = req.body
     const device = await prisma.device.findFirst({
       where: {
@@ -78,7 +78,7 @@ export const readLocations = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { device_id, start_date, end_date, latest } = req.query
 
     const deviceWhere = {
@@ -145,7 +145,7 @@ export const readLocation = async (
 
     const location = await prisma.location.findFirst({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
       },
     })
 
@@ -166,7 +166,7 @@ export const updateLocation = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const location: Location = req.body
 
     const existingLocation = await prisma.location.findFirst({
@@ -205,7 +205,7 @@ export const deleteLocation = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -215,7 +215,7 @@ export const deleteLocation = async (
 
     const deletedLocation = await prisma.location.delete({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
         device: { user_id: user.id },
       },
     })
@@ -239,7 +239,7 @@ export const deleteLocations = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const reqUser = req.user
+    const reqUser = req.user!
     const { user_id } = req.query
 
     if (!user_id) {
@@ -276,7 +276,7 @@ export const availableDates = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { device_id } = req.query
 
     if (!device_id) {

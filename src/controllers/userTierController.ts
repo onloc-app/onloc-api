@@ -9,7 +9,7 @@ export const createUserTier = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const reqUser = req.user
+    const reqUser = req.user!
     const userTier: UserTier = req.body
 
     if (!reqUser.admin) {
@@ -73,7 +73,7 @@ export const readUserTiers = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
 
     if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })

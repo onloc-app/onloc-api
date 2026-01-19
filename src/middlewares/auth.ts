@@ -8,7 +8,7 @@ const JWT_SECRET =
   process.env.ACCESS_TOKEN_SECRET || "onloc-access-token-secret"
 
 export interface AuthenticatedRequest extends Request {
-  user: User
+  user?: User
 }
 
 export const authenticate = async (

@@ -16,7 +16,7 @@ export const readUsers = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const reqUser = req.user
+    const reqUser = req.user!
 
     if (!reqUser.admin) {
       res.status(403).json({ message: "Forbidden" })
@@ -73,7 +73,7 @@ export const readUser = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const reqUser = req.user
+    const reqUser = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -81,14 +81,14 @@ export const readUser = async (
       return
     }
 
-    if (BigInt(id) !== reqUser.id && !reqUser.admin) {
+    if (BigInt(id as string) !== reqUser.id && !reqUser.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
     const user = await prisma.user.findFirst({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
       },
     })
 
@@ -104,7 +104,7 @@ export const readUserInfo = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
 
     const userTier = await prisma.userTier.findFirst({
       where: {
@@ -132,7 +132,7 @@ export const updateUser = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const body: Partial<User> = req.body
 
     if (body.username && body.username !== user.username) {
@@ -178,7 +178,7 @@ export const deleteUser = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const reqUser = req.user
+    const reqUser = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -186,14 +186,14 @@ export const deleteUser = async (
       return
     }
 
-    if (BigInt(id) !== reqUser.id && !reqUser.admin) {
+    if (BigInt(id as string) !== reqUser.id && !reqUser.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
     const user = await prisma.user.findFirst({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
       },
     })
 
@@ -204,7 +204,7 @@ export const deleteUser = async (
 
     await prisma.user.delete({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
       },
     })
 

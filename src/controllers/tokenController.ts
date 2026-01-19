@@ -8,7 +8,7 @@ export const readTokens = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
 
     const tokens = await prisma.refreshToken.findMany({
       where: {
@@ -28,7 +28,7 @@ export const deleteToken = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -38,7 +38,7 @@ export const deleteToken = async (
 
     const deleted = await prisma.refreshToken.delete({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
         user_id: user.id,
       },
     })
@@ -60,7 +60,7 @@ export const deleteTokenWithBody = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { refresh_token } = req.body
 
     if (!refresh_token) {

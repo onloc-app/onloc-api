@@ -9,7 +9,7 @@ export const createTier = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const tier: Tier = req.body
 
     if (!user.admin) {
@@ -51,7 +51,7 @@ export const readTiers = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
 
     if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
@@ -72,7 +72,7 @@ export const readTier = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!user.admin) {
@@ -87,7 +87,7 @@ export const readTier = async (
 
     const tier = await prisma.tier.findFirst({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
       },
     })
 
@@ -108,7 +108,7 @@ export const updateTier = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const tier: Tier = req.body
 
     if (!user.admin) {
@@ -168,7 +168,7 @@ export const deleteTier = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const { id } = req.params
 
     if (!user.admin) {
@@ -196,7 +196,7 @@ export const deleteTier = async (
 
     const deleted = await prisma.tier.delete({
       where: {
-        id: BigInt(id),
+        id: BigInt(id as string),
       },
     })
 
@@ -217,7 +217,7 @@ export const reorderTiers = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const user = req.user
+    const user = req.user!
     const tiers: Tier[] = req.body
 
     if (!user.admin) {

@@ -12,6 +12,7 @@
     "eslint": "^9.39.2",
     "globals": "^17.0.0",
     "jiti": "^2.6.1",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.52.0"
   },
   "peerDependencies": {
@@ -27,6 +28,7 @@
     "chalk": "^5.6.2",
     "cors": "^2.8.5",
     "express": "^5.2.1",
+    "extensionless": "^2.0.6",
     "i": "^0.3.7",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^7.2.0",
@@ -34,9 +36,17 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
+  "extensionless": {
+    "lookFor": [
+      "js",
+      "mjs",
+      "cjs",
+      "ts"
+    ]
+  },
   "scripts": {
     "dev": "bun run src/index.ts",
-    "start": "bun run src/index.ts",
+    "start": "node --import=extensionless/register src/index.ts",
     "mikro-orm": "mikro-orm",
     "lint": "eslint ."
   }
