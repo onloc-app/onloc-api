@@ -1,17 +1,16 @@
-FROM oven/bun:latest AS base
+FROM node:20
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
-
 RUN apt-get update -y && apt-get install -y openssl
 
-RUN bun install --frozen-lockfile
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
 
-RUN bunx prisma generate
+RUN npx prisma generate
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "bunx prisma migrate deploy && bun start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
