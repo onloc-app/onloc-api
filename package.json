@@ -34,7 +34,8 @@
     "prisma": "^7.2.0",
     "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "ts-node": "^10.9.2"
   },
   "extensionless": {
     "lookFor": [
@@ -46,7 +47,7 @@
   },
   "scripts": {
     "dev": "bun run src/index.ts",
-    "start": "node --import=extensionless/register src/index.ts",
+    "start": "node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
     "mikro-orm": "mikro-orm",
     "lint": "eslint ."
   }
