@@ -54,6 +54,7 @@ export const createDevice = async (
         name: device.name,
         icon: device.icon,
         can_ring: device.can_ring,
+        can_lock: device.can_lock,
         created_at: new Date(),
         updated_at: new Date(),
       },
