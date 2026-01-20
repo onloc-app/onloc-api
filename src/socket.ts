@@ -28,6 +28,10 @@ export function createIO(
     console.log(`New client connected: ${socket.id}`)
 
     socket.on("register-device", async ({ device_id }) => {
+      if (!device_id) {
+        console.error("Event: register-device, called without device_id")
+        return
+      }
       const device = await prisma.device.findUnique({
         where: { id: device_id },
       })
@@ -61,6 +65,10 @@ export function createIO(
     })
 
     socket.on("unregister-device", async ({ device_id }) => {
+      if (!device_id) {
+        console.error("Event: unregister-device, called without device_id")
+        return
+      }
       const device = await prisma.device.findUnique({
         where: { id: device_id },
       })
@@ -72,6 +80,10 @@ export function createIO(
     })
 
     socket.on("ring", async ({ device_id }) => {
+      if (!device_id) {
+        console.error("Event: ring, called without device_id")
+        return
+      }
       const device = await prisma.device.findUnique({
         where: { id: device_id },
       })
