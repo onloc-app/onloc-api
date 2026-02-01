@@ -17,7 +17,7 @@ router.use(authenticate)
  * /api/users:
  *   get:
  *     summary: List users
- *     description: Returns a list of users with additional computed fields (admin only).
+ *     description: Returns a list of users with additional computed fields.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []

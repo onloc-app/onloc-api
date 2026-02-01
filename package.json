@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.0",
-    "@prisma/client": "^7.2.0",
+    "@prisma/client": "^7.3.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "bcryptjs": "^3.0.3",
@@ -31,7 +31,7 @@
     "extensionless": "^2.0.6",
     "i": "^0.3.7",
     "jsonwebtoken": "^9.0.2",
-    "prisma": "^7.2.0",
+    "prisma": "^7.3.0",
     "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",

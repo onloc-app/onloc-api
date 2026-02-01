@@ -62,17 +62,19 @@ model Preference {
 }
 
 model User {
-  id             BigInt         @id @default(autoincrement())
-  username       String         @unique(map: "users_username_unique") @db.VarChar(255)
-  password       String         @db.VarChar(255)
-  admin          Boolean        @default(false)
-  created_at     DateTime       @db.Timestamp(0)
-  updated_at     DateTime       @db.Timestamp(0)
-  devices        Device[]
-  refresh_tokens RefreshToken[]
-  preferences    Preference[]
-  api_keys       ApiKey[]
-  userTiers      UserTier[]
+  id                  BigInt         @id @default(autoincrement())
+  username            String         @unique(map: "users_username_unique") @db.VarChar(255)
+  password            String         @db.VarChar(255)
+  admin               Boolean        @default(false)
+  created_at          DateTime       @db.Timestamp(0)
+  updated_at          DateTime       @db.Timestamp(0)
+  devices             Device[]
+  refresh_tokens      RefreshToken[]
+  preferences         Preference[]
+  api_keys            ApiKey[]
+  userTiers           UserTier[]
+  sentConnections     Connection[]   @relation("ConnectionRequester")
+  receivedConnections Connection[]   @relation("ConnectionAddressee")
 
   @@map("users")
 }
@@ -123,4 +125,25 @@ model UserTier {
   tier       Tier     @relation(fields: [tier_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_tier_tier_id_foreign")
 
   @@map("user_tier")
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+model Connection {
+  id           BigInt           @id @default(autoincrement())
+  requester_id BigInt
+  addressee_id BigInt
+  status       ConnectionStatus @default(PENDING)
+  created_at   DateTime         @db.Timestamp(0)
+  updated_at   DateTime         @db.Timestamp(0)
+  requester    User             @relation(name: "ConnectionRequester", fields: [requester_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "connections_requester_id_foreign")
+  addressee    User             @relation(name: "ConnectionAddressee", fields: [addressee_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "connections_addressee_id_foreign")
+
+  @@unique([requester_id, addressee_id], map: "connections_user_id_unique")
+  @@map("connections")
 }
