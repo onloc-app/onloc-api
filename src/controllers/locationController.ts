@@ -136,6 +136,7 @@ export const readLocation = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const user = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -146,6 +147,9 @@ export const readLocation = async (
     const location = await prisma.location.findFirst({
       where: {
         id: BigInt(id as string),
+        device: {
+          user_id: user.id,
+        },
       },
     })
 
