@@ -26,7 +26,7 @@ export const createDeviceConnection = async (
 
     const connection = await prisma.connection.findFirst({
       where: {
-        id: deviceConnection.id,
+        id: deviceConnection.connection_id,
         OR: [{ requester_id: user.id }, { addressee_id: user.id }],
       },
     })
