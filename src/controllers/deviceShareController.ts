@@ -1,44 +1,49 @@
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import type { DeviceConnection } from "../generated/prisma"
+import type { DeviceShare } from "../generated/prisma"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
 
-export const createDeviceConnection = async (
+export const createDeviceShare = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
   try {
     const user = req.user!
-    const deviceConnection: DeviceConnection = req.body
+    const deviceShare: DeviceShare = req.body
 
-    const existingDeviceConnection = await prisma.deviceConnection.findFirst({
+    const existingDeviceShare = await prisma.deviceShare.findFirst({
       where: {
-        connection_id: deviceConnection.connection_id,
-        device_id: deviceConnection.device_id,
+        connection_id: deviceShare.connection_id,
+        device_id: deviceShare.device_id,
       },
     })
 
-    if (existingDeviceConnection) {
-      res.status(400).json({ message: "Device connection already exists" })
+    if (existingDeviceShare) {
+      res.status(400).json({ message: "Device share already exists" })
       return
     }
 
     const connection = await prisma.connection.findFirst({
       where: {
-        id: deviceConnection.connection_id,
+        id: deviceShare.connection_id,
         OR: [{ requester_id: user.id }, { addressee_id: user.id }],
       },
     })
 
+    const otherUserId =
+      connection?.addressee_id !== user.id
+        ? connection?.addressee_id
+        : connection?.requester_id
+
     const device = await prisma.device.findFirst({
       where: {
-        id: deviceConnection.device_id,
+        id: deviceShare.device_id,
         user_id: user.id,
       },
     })
 
-    if (!connection) {
+    if (!connection || !otherUserId) {
       res.status(404).json({ message: "Connection not found" })
       return
     }
@@ -53,34 +58,33 @@ export const createDeviceConnection = async (
       return
     }
 
-    const newDeviceConnection = await prisma.deviceConnection.create({
+    const newDeviceShare = await prisma.deviceShare.create({
       data: {
         connection_id: connection.id,
         device_id: device.id,
-        can_ring: deviceConnection.can_ring,
-        can_lock: deviceConnection.can_lock,
+        user_id: otherUserId,
+        can_ring: deviceShare.can_ring,
+        can_lock: deviceShare.can_lock,
         created_at: new Date(),
         updated_at: new Date(),
       },
     })
 
-    res
-      .status(201)
-      .json({ device_connection: sanitizeData(newDeviceConnection) })
+    res.status(201).json({ device_share: sanitizeData(newDeviceShare) })
   } catch (error) {
     console.error(error)
-    res.status(500).json({ message: "Could not create device connection" })
+    res.status(500).json({ message: "Could not create device share" })
   }
 }
 
-export const readDeviceConnections = async (
+export const readDeviceShares = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
   try {
     const user = req.user!
 
-    const rawDeviceConnections = await prisma.deviceConnection.findMany({
+    const rawDeviceShares = await prisma.deviceShare.findMany({
       where: {
         connection: {
           OR: [{ requester_id: user.id }, { addressee_id: user.id }],
@@ -91,16 +95,14 @@ export const readDeviceConnections = async (
       },
     })
 
-    res
-      .status(200)
-      .json({ device_connections: sanitizeData(rawDeviceConnections) })
+    res.status(200).json({ device_shares: sanitizeData(rawDeviceShares) })
   } catch (error) {
     console.error(error)
-    res.status(500).json({ message: "Could not read device connections" })
+    res.status(500).json({ message: "Could not read device shares" })
   }
 }
 
-export const deleteDeviceConnection = async (
+export const deleteDeviceShare = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
@@ -113,7 +115,7 @@ export const deleteDeviceConnection = async (
       return
     }
 
-    const deleted = await prisma.deviceConnection.delete({
+    const deleted = await prisma.deviceShare.delete({
       where: {
         id: BigInt(id as string),
         device: {
@@ -123,13 +125,13 @@ export const deleteDeviceConnection = async (
     })
 
     if (!deleted) {
-      res.status(404).json({ message: "Device connection not found" })
+      res.status(404).json({ message: "Device share not found" })
       return
     }
 
     res.status(204).send()
   } catch (error) {
     console.error(error)
-    res.status(500).json({ message: "Could not delete device connection" })
+    res.status(500).json({ message: "Could not delete device share" })
   }
 }

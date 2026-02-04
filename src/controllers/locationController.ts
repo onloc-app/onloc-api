@@ -5,7 +5,7 @@ import prisma from "../prisma"
 import { getIO } from "../socket"
 import type { CrudAction } from "../types"
 import { sanitizeData } from "../utils"
-import { hasSoftAccessToDevice } from "./deviceController"
+import { hasReadAccessToDevice } from "../helpers/access"
 import ApiError from "../types/ApiError"
 
 function emitAction(
@@ -273,7 +273,7 @@ export const availableDates = async (
 
     const formattedDeviceId = BigInt(device_id as string)
 
-    if (!hasSoftAccessToDevice(formattedDeviceId, user.id)) {
+    if (!hasReadAccessToDevice(formattedDeviceId, user.id)) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
@@ -309,7 +309,7 @@ const getLocationsForDevice = async (
   endDate?: string,
   latest?: string,
 ): Promise<{ device_id: bigint; locations: Location[] }[]> => {
-  const hasAccess = await hasSoftAccessToDevice(deviceId, userId)
+  const hasAccess = await hasReadAccessToDevice(deviceId, userId)
   if (!hasAccess) {
     throw new ApiError(403, "Forbidden")
   }

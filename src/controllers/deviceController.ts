@@ -1,7 +1,7 @@
 import type { Response } from "express"
 import {
   type Device,
-  type DeviceConnection,
+  type DeviceShare,
   type Location,
 } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
@@ -11,10 +11,15 @@ import { sanitizeData } from "../utils"
 import { ringQueue } from "../services/ringQueue"
 import { checkPermissions } from "./userTierController"
 import { lockQueue } from "../services/lockQueue"
+import {
+  hasLockAccessToDevice,
+  hasReadAccessToDevice,
+  hasRingAccessToDevice,
+} from "../helpers/access"
 
 interface DeviceExtra extends Device {
   latest_location?: Location | null
-  device_connection?: DeviceConnection | null
+  device_share?: DeviceShare | null
   is_connected: boolean
 }
 
@@ -121,7 +126,7 @@ export const readDevice = async (
 
     const formattedId = BigInt(id as string)
 
-    const hasAccess = await hasSoftAccessToDevice(formattedId, user.id)
+    const hasAccess = await hasReadAccessToDevice(formattedId, user.id)
     if (!hasAccess) {
       res.status(403).json({ message: "Forbidden" })
       return
@@ -243,9 +248,9 @@ export const ringDevice = async (
 
     const formattedId = BigInt(id as string)
 
-    const hasAccess = await hasSoftAccessToDevice(formattedId, user.id)
+    const hasAccess = await hasRingAccessToDevice(formattedId, user.id)
     if (!hasAccess) {
-      res.status(403).json({ message: "Not authorized to lock this device" })
+      res.status(403).json({ message: "Not authorized to ring this device" })
       return
     }
 
@@ -299,7 +304,7 @@ export const lockDevice = async (
 
     const formattedId = BigInt(id as string)
 
-    const hasAccess = await hasSoftAccessToDevice(formattedId, user.id)
+    const hasAccess = await hasLockAccessToDevice(formattedId, user.id)
     if (!hasAccess) {
       res.status(403).json({ message: "Not authorized to lock this device" })
       return
@@ -351,7 +356,7 @@ export const readSharedDevices = async (
         OR: [{ requester_id: user.id }, { addressee_id: user.id }],
       },
       include: {
-        deviceConnections: {
+        deviceShares: {
           include: {
             device: true,
           },
@@ -360,27 +365,27 @@ export const readSharedDevices = async (
     })
 
     // Grab devices connected to the user excluding its own
-    const rawDeviceConnections = connections
+    const rawDeviceShares = connections
       .flatMap((connection) => {
-        return connection.deviceConnections
+        return connection.deviceShares
       })
-      .filter((deviceConnection) => deviceConnection.device.user_id !== user.id)
+      .filter((deviceShare) => deviceShare.device.user_id !== user.id)
 
     const devices: DeviceExtra[] = await Promise.all(
-      rawDeviceConnections.map(async (deviceConnection) => {
-        const device = deviceConnection.device
+      rawDeviceShares.map(async (deviceShare) => {
+        const device = deviceShare.device
         const latestLocation = await prisma.location.findFirst({
           where: { device_id: device.id },
           orderBy: { created_at: "desc" },
         })
-        const filteredDeviceConnection = {
-          ...deviceConnection,
+        const filteredDeviceShare = {
+          ...deviceShare,
           device: undefined,
         }
         return {
           ...device,
           latest_location: latestLocation,
-          device_connection: filteredDeviceConnection,
+          device_share: filteredDeviceShare,
           is_connected: await checkConnection(device.id),
         }
       }),
@@ -391,33 +396,6 @@ export const readSharedDevices = async (
     console.error(error)
     res.status(500).json({ message: "Could not read shared devices" })
   }
-}
-
-export const hasSoftAccessToDevice = async (
-  id: bigint,
-  user_id: bigint,
-): Promise<boolean> => {
-  const ownedDevice = await prisma.device.findFirst({
-    where: {
-      id: id,
-      user_id: user_id,
-    },
-  })
-
-  if (ownedDevice) {
-    return true
-  }
-
-  const deviceConnection = await prisma.deviceConnection.findFirst({
-    where: {
-      device_id: id,
-      connection: {
-        OR: [{ requester_id: user_id }, { addressee_id: user_id }],
-      },
-    },
-  })
-
-  return !!deviceConnection
 }
 
 export const checkConnection = async (id: bigint) => {

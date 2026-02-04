@@ -1,21 +1,21 @@
 import { Router } from "express"
 import { authenticate } from "../middlewares/auth"
 import {
-  createDeviceConnection,
-  deleteDeviceConnection,
-  readDeviceConnections,
-} from "../controllers/deviceConnectionController"
+  createDeviceShare,
+  deleteDeviceShare,
+  readDeviceShares,
+} from "../controllers/deviceShareController"
 
 const router = Router()
 router.use(authenticate)
 
 /**
  * @openapi
- * /api/deviceconnections:
+ * /api/deviceshares:
  *   post:
- *     summary: Create a device connection
- *     description: Create a device connection linking a device to a connection (shared user). The authenticated user must be part of the connection and owner of the device.
- *     tags: [DeviceConnections]
+ *     summary: Create a device share
+ *     description: Create a device share linking a device to a connection (shared user). The authenticated user must be part of the connection and owner of the device.
+ *     tags: [DeviceShares]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -23,17 +23,17 @@ router.use(authenticate)
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/DeviceConnectionCreate"
+ *             $ref: "#/components/schemas/DeviceSharesCreate"
  *     responses:
  *       201:
- *         description: Device connection created
+ *         description: Device share created
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 device_connection:
- *                   $ref: "#/components/schemas/DeviceConnectionSafe"
+ *                 device_share:
+ *                   $ref: "#/components/schemas/DeviceShareSafe"
  *       400:
  *         $ref: "#/components/responses/BadRequest"
  *       403:
@@ -45,38 +45,38 @@ router.use(authenticate)
  *       500:
  *         $ref: "#/components/responses/InternalError"
  */
-router.post("/", createDeviceConnection)
+router.post("/", createDeviceShare)
 
 /**
  * @openapi
- * /api/deviceconnections:
+ * /api/deviceShares:
  *   get:
- *     summary: List device connections for the authenticated user
- *     description: Returns device connections where the authenticated user is part of the underlying connection. Includes the related device details.
- *     tags: [DeviceConnections]
+ *     summary: List device shares for the authenticated user
+ *     description: Returns device shares where the authenticated user is part of the underlying connection. Includes the related device details.
+ *     tags: [DeviceShares]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: List of device connections
+ *         description: List of device shares
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/DeviceConnectionList"
+ *               $ref: "#/components/schemas/DeviceShareList"
  *       401:
  *         $ref: "#/components/responses/Unauthorized"
  *       500:
  *         $ref: "#/components/responses/InternalError"
  */
-router.get("/", readDeviceConnections)
+router.get("/", readDeviceShares)
 
 /**
  * @openapi
- * /api/deviceconnections/{id}:
+ * /api/deviceshares/{id}:
  *   delete:
- *     summary: Delete a device connection
- *     description: Deletes a device connection by ID. The authenticated user must own the related device or be allowed to delete.
- *     tags: [DeviceConnections]
+ *     summary: Delete a device share
+ *     description: Deletes a device share by ID. The authenticated user must own the related device or be allowed to delete.
+ *     tags: [DeviceShares]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -85,11 +85,11 @@ router.get("/", readDeviceConnections)
  *         required: true
  *         schema:
  *           type: string
- *         description: DeviceConnection ID to delete
+ *         description: DeviceShare ID to delete
  *         example: "123"
  *     responses:
  *       204:
- *         description: Device connection deleted successfully (no content)
+ *         description: Device share deleted successfully (no content)
  *       400:
  *         $ref: "#/components/responses/BadRequest"
  *       404:
@@ -99,6 +99,6 @@ router.get("/", readDeviceConnections)
  *       500:
  *         $ref: "#/components/responses/InternalError"
  */
-router.delete("/:id", deleteDeviceConnection)
+router.delete("/:id", deleteDeviceShare)
 
 export default router

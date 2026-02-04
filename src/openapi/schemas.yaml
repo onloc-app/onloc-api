@@ -105,7 +105,7 @@ components:
         - created_at
         - updated_at
 
-    DeviceConnectionSafe:
+    DeviceShareSafe:
       type: object
       properties:
         id:
@@ -131,9 +131,9 @@ components:
         - created_at
         - updated_at
 
-    DeviceConnectionCreate:
+    DeviceShareCreate:
       type: object
-      description: Payload to create a device connection linking a connection and a device
+      description: Payload to create a device share linking a connection and a device
       required:
         - connection_id
         - device_id
@@ -160,9 +160,9 @@ components:
         can_ring: false
         can_lock: false
 
-    DeviceConnectionWithDevice:
+    DeviceShareWithDevice:
       allOf:
-        - $ref: "#/components/schemas/DeviceConnectionSafe"
+        - $ref: "#/components/schemas/DeviceShareSafe"
         - type: object
           properties:
             device:
@@ -507,8 +507,8 @@ components:
         - $ref: "#/components/schemas/DeviceWithExtras"
         - type: object
           properties:
-            device_connection:
-              $ref: "#/components/schemas/DeviceConnectionSafe"
+            device_share:
+              $ref: "#/components/schemas/DeviceShareSafe"
 
     SharedDeviceList:
       type: object
