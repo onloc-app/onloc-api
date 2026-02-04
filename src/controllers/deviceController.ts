@@ -1,5 +1,9 @@
 import type { Response } from "express"
-import { type Device, type Location } from "../generated/prisma"
+import {
+  type Device,
+  type DeviceConnection,
+  type Location,
+} from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { getIO } from "../socket"
@@ -9,7 +13,8 @@ import { checkPermissions } from "./userTierController"
 import { lockQueue } from "../services/lockQueue"
 
 interface DeviceExtra extends Device {
-  latest_location: Location | null
+  latest_location?: Location | null
+  device_connection?: DeviceConnection | null
   is_connected: boolean
 }
 
@@ -114,19 +119,22 @@ export const readDevice = async (
       return
     }
 
+    const formattedId = BigInt(id as string)
+
+    const hasAccess = await hasSoftAccessToDevice(formattedId, user.id)
+    if (!hasAccess) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
+
     const rawDevice = await prisma.device.findFirst({
       where: {
-        id: BigInt(id as string),
+        id: formattedId,
       },
     })
 
     if (!rawDevice) {
       res.status(404).json({ message: "Device not found" })
-      return
-    }
-
-    if (user.id !== rawDevice.user_id) {
-      res.status(403).json({ message: "Forbidden" })
       return
     }
 
@@ -233,10 +241,17 @@ export const ringDevice = async (
       return
     }
 
+    const formattedId = BigInt(id as string)
+
+    const hasAccess = await hasSoftAccessToDevice(formattedId, user.id)
+    if (!hasAccess) {
+      res.status(403).json({ message: "Not authorized to lock this device" })
+      return
+    }
+
     const device = await prisma.device.findFirst({
       where: {
-        id: BigInt(id as string),
-        user_id: user.id,
+        id: formattedId,
       },
     })
 
@@ -250,8 +265,8 @@ export const ringDevice = async (
       return
     }
 
-    if (!(await checkConnection(BigInt(id as string)))) {
-      ringQueue.add(BigInt(id as string))
+    if (!(await checkConnection(formattedId))) {
+      ringQueue.add(formattedId)
       console.log(`Added ${id} to ring queue`)
       res.status(202).send()
       return
@@ -282,10 +297,17 @@ export const lockDevice = async (
       return
     }
 
+    const formattedId = BigInt(id as string)
+
+    const hasAccess = await hasSoftAccessToDevice(formattedId, user.id)
+    if (!hasAccess) {
+      res.status(403).json({ message: "Not authorized to lock this device" })
+      return
+    }
+
     const device = await prisma.device.findFirst({
       where: {
-        id: BigInt(id as string),
-        user_id: user.id,
+        id: formattedId,
       },
     })
 
@@ -299,8 +321,8 @@ export const lockDevice = async (
       return
     }
 
-    if (!(await checkConnection(BigInt(id as string)))) {
-      lockQueue.add(BigInt(id as string), message)
+    if (!(await checkConnection(formattedId))) {
+      lockQueue.add(formattedId, message)
       console.log(`Added ${id} to lock queue`)
       res.status(202).send()
       return
@@ -315,6 +337,87 @@ export const lockDevice = async (
     console.error(error)
     res.status(500).json({ message: "Could not lock device" })
   }
+}
+
+export const readSharedDevices = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user!
+
+    const connections = await prisma.connection.findMany({
+      where: {
+        OR: [{ requester_id: user.id }, { addressee_id: user.id }],
+      },
+      include: {
+        deviceConnections: {
+          include: {
+            device: true,
+          },
+        },
+      },
+    })
+
+    // Grab devices connected to the user excluding its own
+    const rawDeviceConnections = connections
+      .flatMap((connection) => {
+        return connection.deviceConnections
+      })
+      .filter((deviceConnection) => deviceConnection.device.user_id !== user.id)
+
+    const devices: DeviceExtra[] = await Promise.all(
+      rawDeviceConnections.map(async (deviceConnection) => {
+        const device = deviceConnection.device
+        const latestLocation = await prisma.location.findFirst({
+          where: { device_id: device.id },
+          orderBy: { created_at: "desc" },
+        })
+        const filteredDeviceConnection = {
+          ...deviceConnection,
+          device: undefined,
+        }
+        return {
+          ...device,
+          latest_location: latestLocation,
+          device_connection: filteredDeviceConnection,
+          is_connected: await checkConnection(device.id),
+        }
+      }),
+    )
+
+    res.status(200).json({ devices: sanitizeData(devices) })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not read shared devices" })
+  }
+}
+
+export const hasSoftAccessToDevice = async (
+  id: bigint,
+  user_id: bigint,
+): Promise<boolean> => {
+  const ownedDevice = await prisma.device.findFirst({
+    where: {
+      id: id,
+      user_id: user_id,
+    },
+  })
+
+  if (ownedDevice) {
+    return true
+  }
+
+  const deviceConnection = await prisma.deviceConnection.findFirst({
+    where: {
+      device_id: id,
+      connection: {
+        OR: [{ requester_id: user_id }, { addressee_id: user_id }],
+      },
+    },
+  })
+
+  return !!deviceConnection
 }
 
 export const checkConnection = async (id: bigint) => {

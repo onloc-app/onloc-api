@@ -502,6 +502,22 @@ components:
           required:
             - is_connected
 
+    SharedDevice:
+      allOf:
+        - $ref: "#/components/schemas/DeviceWithExtras"
+        - type: object
+          properties:
+            device_connection:
+              $ref: "#/components/schemas/DeviceConnectionSafe"
+
+    SharedDeviceList:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: "#/components/schemas/SharedDevice"
+
     RefreshToken:
       type: object
       description: A stored refresh token record
