@@ -8,16 +8,27 @@ import { sanitizeData } from "../utils"
 import { hasReadAccessToDevice } from "../helpers/access"
 import ApiError from "../types/ApiError"
 
-function emitAction(
+async function emitAction(
   userId: bigint,
   action: CrudAction,
   locations: Location[],
-): void {
+): Promise<void> {
   const io = getIO()
 
   const data = {
     action: action,
     locations: locations,
+  }
+
+  for (const location of locations) {
+    const deviceShare = await prisma.deviceShare.findFirst({
+      where: {
+        device_id: location.device_id,
+      },
+    })
+    if (deviceShare) {
+      io.to(`user_${deviceShare.user_id}`).emit("locations-change", data)
+    }
   }
 
   io.to(`user_${userId.toString()}`).emit("locations-change", data)
