@@ -5,6 +5,7 @@ import {
   lockDevice,
   readDevice,
   readDevices,
+  readSharedDevices,
   ringDevice,
   updateDevice,
 } from "../controllers/deviceController"
@@ -87,6 +88,29 @@ router.post("/", createDevice)
  *         $ref: "#/components/responses/InternalError"
  */
 router.get("/", readDevices)
+
+/**
+ * @openapi
+ * /api/devices/shared:
+ *   get:
+ *     summary: List devices shared with the authenticated user
+ *     description: Returns devices that have been shared with the authenticated user via accepted connections.
+ *     tags: [Devices]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Shared devices
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/SharedDeviceList"
+ *       401:
+ *         $ref: "#/components/responses/Unauthorized"
+ *       500:
+ *         $ref: "#/components/responses/InternalError"
+ */
+router.get("/shared", readSharedDevices)
 
 /**
  * @openapi

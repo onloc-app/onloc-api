@@ -5,17 +5,30 @@ import prisma from "../prisma"
 import { getIO } from "../socket"
 import type { CrudAction } from "../types"
 import { sanitizeData } from "../utils"
+import { hasReadAccessToDevice } from "../helpers/access"
+import ApiError from "../types/ApiError"
 
-function emitAction(
+async function emitAction(
   userId: bigint,
   action: CrudAction,
   locations: Location[],
-): void {
+): Promise<void> {
   const io = getIO()
 
   const data = {
     action: action,
     locations: locations,
+  }
+
+  for (const location of locations) {
+    const deviceShare = await prisma.deviceShare.findFirst({
+      where: {
+        device_id: location.device_id,
+      },
+    })
+    if (deviceShare) {
+      io.to(`user_${deviceShare.user_id}`).emit("locations-change", data)
+    }
   }
 
   io.to(`user_${userId.toString()}`).emit("locations-change", data)
@@ -29,6 +42,7 @@ export const createLocation = async (
   try {
     const user = req.user!
     const location: Location = req.body
+
     const device = await prisma.device.findFirst({
       where: {
         id: location.device_id,
@@ -81,51 +95,31 @@ export const readLocations = async (
     const user = req.user!
     const { device_id, start_date, end_date, latest } = req.query
 
-    const deviceWhere = {
-      user_id: user.id,
-      ...(device_id ? { id: Number(device_id) } : {}),
+    let results
+
+    if (device_id) {
+      results = await getLocationsForDevice(
+        BigInt(device_id as string),
+        user.id,
+        start_date?.toString(),
+        end_date?.toString(),
+        latest?.toString(),
+      )
+    } else {
+      results = await getLocationsForOwnedDevices(
+        user.id,
+        start_date?.toString(),
+        end_date?.toString(),
+        latest?.toString(),
+      )
     }
 
-    const devices = await prisma.device.findMany({
-      where: deviceWhere,
-      select: { id: true },
-    })
-
-    if (!devices.length) {
-      res.status(404).json({ message: "Device not found" })
-      return
-    }
-
-    const deviceIds = devices.map((device) => device.id)
-    const dateRange = {
-      ...(start_date ? { gte: new Date(start_date.toString()) } : {}),
-      ...(end_date ? { lte: new Date(end_date.toString()) } : {}),
-    }
-
-    const fetchLocations = async (id: bigint) => {
-      const where = {
-        device_id: Number(id),
-        ...(start_date || end_date ? { created_at: dateRange } : {}),
-      }
-
-      if (latest === "true") {
-        const location = await prisma.location.findFirst({
-          where,
-          orderBy: { created_at: "asc" },
-        })
-        return { device_id: id, locations: location ? [location] : [] }
-      }
-
-      const locations = await prisma.location.findMany({
-        where,
-        orderBy: { created_at: "asc" },
-      })
-      return { device_id: id, locations: locations }
-    }
-
-    const results = await Promise.all(deviceIds.map(fetchLocations))
     res.status(200).json({ locations: sanitizeData(results) })
   } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.status).json({ message: error.message })
+      return
+    }
     console.error(error)
     res.status(500).json({ message: "Could not read locations" })
   }
@@ -136,6 +130,7 @@ export const readLocation = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const user = req.user!
     const { id } = req.params
 
     if (!id) {
@@ -146,6 +141,9 @@ export const readLocation = async (
     const location = await prisma.location.findFirst({
       where: {
         id: BigInt(id as string),
+        device: {
+          user_id: user.id,
+        },
       },
     })
 
@@ -225,7 +223,7 @@ export const deleteLocation = async (
       return
     }
 
-    emitAction(user.id, "delete", [sanitizeData(deleteLocation)])
+    emitAction(user.id, "delete", [sanitizeData(deletedLocation)])
 
     res.status(204).send()
   } catch (error) {
@@ -284,12 +282,16 @@ export const availableDates = async (
       return
     }
 
+    const formattedDeviceId = BigInt(device_id as string)
+
+    if (!hasReadAccessToDevice(formattedDeviceId, user.id)) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
+
     const locations = await prisma.location.findMany({
       where: {
-        device_id: BigInt(device_id.toString()),
-        device: {
-          user_id: user.id,
-        },
+        device_id: formattedDeviceId,
       },
       select: {
         created_at: true,
@@ -308,4 +310,86 @@ export const availableDates = async (
     console.error(error)
     res.status(500).json({ message: "Could not read available dates" })
   }
+}
+
+// Helper for readLocations when device_id exists
+const getLocationsForDevice = async (
+  deviceId: bigint,
+  userId: bigint,
+  startDate?: string,
+  endDate?: string,
+  latest?: string,
+): Promise<{ device_id: bigint; locations: Location[] }[]> => {
+  const hasAccess = await hasReadAccessToDevice(deviceId, userId)
+  if (!hasAccess) {
+    throw new ApiError(403, "Forbidden")
+  }
+
+  const dateRange = {
+    ...(startDate ? { gte: new Date(startDate) } : {}),
+    ...(endDate ? { lte: new Date(endDate) } : {}),
+  }
+
+  const where = {
+    device_id: deviceId,
+    ...(startDate || endDate ? { created_at: dateRange } : {}),
+  }
+
+  if (latest === "true") {
+    const location = await prisma.location.findFirst({
+      where,
+      orderBy: { created_at: "desc" },
+    })
+    return [{ device_id: deviceId, locations: location ? [location] : [] }]
+  }
+
+  const locations = await prisma.location.findMany({
+    where,
+    orderBy: { created_at: "asc" },
+  })
+  return [{ device_id: deviceId, locations }]
+}
+
+// Helper for readLocations, fetches every owned device
+const getLocationsForOwnedDevices = async (
+  userId: bigint,
+  startDate?: string,
+  endDate?: string,
+  latest?: string,
+): Promise<{ device_id: bigint; locations: Location[] }[]> => {
+  const devices = await prisma.device.findMany({
+    where: {
+      user_id: userId,
+    },
+  })
+
+  const deviceIds = devices.map((device) => device.id)
+
+  const dateRange = {
+    ...(startDate ? { gte: new Date(startDate) } : {}),
+    ...(endDate ? { lte: new Date(endDate) } : {}),
+  }
+
+  const fetchLocations = async (id: bigint) => {
+    const where = {
+      device_id: id,
+      ...(startDate || endDate ? { created_at: dateRange } : {}),
+    }
+
+    if (latest === "true") {
+      const location = await prisma.location.findFirst({
+        where,
+        orderBy: { created_at: "desc" },
+      })
+      return { device_id: id, locations: location ? [location] : [] }
+    }
+
+    const locations = await prisma.location.findMany({
+      where,
+      orderBy: { created_at: "asc" },
+    })
+    return { device_id: id, locations }
+  }
+
+  return Promise.all(deviceIds.map(fetchLocations))
 }

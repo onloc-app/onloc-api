@@ -105,6 +105,69 @@ components:
         - created_at
         - updated_at
 
+    DeviceShareSafe:
+      type: object
+      properties:
+        id:
+          type: string
+        connection_id:
+          type: string
+        device_id:
+          type: string
+        can_ring:
+          type: boolean
+        can_lock:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - connection_id
+        - device_id
+        - created_at
+        - updated_at
+
+    DeviceShareCreate:
+      type: object
+      description: Payload to create a device share linking a connection and a device
+      required:
+        - connection_id
+        - device_id
+      properties:
+        connection_id:
+          type: string
+          description: Connection ID to link the device to
+          example: "123"
+        device_id:
+          type: string
+          description: Device ID to be linked
+          example: "456"
+        can_ring:
+          type: boolean
+          description: Whether the connected user can ring this device
+          default: false
+        can_lock:
+          type: boolean
+          description: Whether the connected user can lock this device
+          default: false
+      example:
+        connection_id: "123"
+        device_id: "456"
+        can_ring: false
+        can_lock: false
+
+    DeviceShareWithDevice:
+      allOf:
+        - $ref: "#/components/schemas/DeviceShareSafe"
+        - type: object
+          properties:
+            device:
+              $ref: "#/components/schemas/DeviceSafe"
+
     LocationSafe:
       type: object
       properties:
@@ -438,6 +501,22 @@ components:
               type: boolean
           required:
             - is_connected
+
+    SharedDevice:
+      allOf:
+        - $ref: "#/components/schemas/DeviceWithExtras"
+        - type: object
+          properties:
+            device_share:
+              $ref: "#/components/schemas/DeviceShareSafe"
+
+    SharedDeviceList:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: "#/components/schemas/SharedDevice"
 
     RefreshToken:
       type: object

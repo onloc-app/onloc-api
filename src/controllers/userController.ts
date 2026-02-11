@@ -10,6 +10,10 @@ interface UserExtra extends UserSafe {
   number_of_devices: number
   number_of_locations: number
 }
+interface UserMin {
+  id: bigint
+  username: string
+}
 
 export const readUsers = async (
   req: AuthenticatedRequest,
@@ -18,48 +22,57 @@ export const readUsers = async (
   try {
     const reqUser = req.user!
 
-    if (!reqUser.admin) {
-      res.status(403).json({ message: "Forbidden" })
-      return
-    }
-
-    const rawUsers = await prisma.user.findMany({
-      include: {
-        userTiers: {
-          include: {
-            tier: true,
+    if (reqUser.admin) {
+      const rawUsers = await prisma.user.findMany({
+        include: {
+          userTiers: {
+            include: {
+              tier: true,
+            },
           },
-        },
-        devices: {
-          select: {
-            id: true,
-            locations: {
-              select: {
-                id: true,
+          devices: {
+            select: {
+              id: true,
+              locations: {
+                select: {
+                  id: true,
+                },
               },
             },
           },
         },
-      },
-    })
+      })
 
-    const users: UserExtra[] = await Promise.all(
-      rawUsers.map(async (user) => {
-        return {
-          id: user.id,
-          username: user.username,
-          admin: user.admin,
-          created_at: user.created_at,
-          updated_at: user.updated_at,
-          tier: user.userTiers[0]?.tier ?? null,
-          number_of_devices: user.devices.length,
-          number_of_locations: user.devices.reduce(
-            (sum, device) => sum + device.locations.length,
-            0,
-          ),
-        }
-      }),
-    )
+      const users: UserExtra[] = await Promise.all(
+        rawUsers.map(async (user) => {
+          return {
+            id: user.id,
+            username: user.username,
+            admin: user.admin,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+            tier: user.userTiers[0]?.tier ?? null,
+            number_of_devices: user.devices.length,
+            number_of_locations: user.devices.reduce(
+              (sum, device) => sum + device.locations.length,
+              0,
+            ),
+          }
+        }),
+      )
+
+      res.status(200).json({ users: sanitizeData(users) })
+      return
+    }
+
+    const rawUsers = await prisma.user.findMany()
+
+    const users: UserMin[] = rawUsers.map((user) => {
+      return {
+        id: user.id,
+        username: user.username,
+      }
+    })
 
     res.status(200).json({ users: sanitizeData(users) })
   } catch (error) {

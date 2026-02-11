@@ -8,16 +8,17 @@ datasource db {
 }
 
 model Device {
-  id         BigInt     @id @default(autoincrement())
-  user_id    BigInt
-  name       String     @db.VarChar(255)
-  icon       String?    @db.VarChar(255)
-  can_ring   Boolean    @default(false)
-  can_lock   Boolean    @default(false)
-  created_at DateTime   @db.Timestamp(0)
-  updated_at DateTime   @db.Timestamp(0)
-  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "devices_user_id_foreign")
-  locations  Location[]
+  id           BigInt        @id @default(autoincrement())
+  user_id      BigInt
+  name         String        @db.VarChar(255)
+  icon         String?       @db.VarChar(255)
+  can_ring     Boolean       @default(false)
+  can_lock     Boolean       @default(false)
+  created_at   DateTime      @db.Timestamp(0)
+  updated_at   DateTime      @db.Timestamp(0)
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "devices_user_id_foreign")
+  locations    Location[]
+  deviceShares DeviceShare[]
 
   @@unique([user_id, name], map: "devices_user_id_name_unique")
   @@map("devices")
@@ -62,17 +63,20 @@ model Preference {
 }
 
 model User {
-  id             BigInt         @id @default(autoincrement())
-  username       String         @unique(map: "users_username_unique") @db.VarChar(255)
-  password       String         @db.VarChar(255)
-  admin          Boolean        @default(false)
-  created_at     DateTime       @db.Timestamp(0)
-  updated_at     DateTime       @db.Timestamp(0)
-  devices        Device[]
-  refresh_tokens RefreshToken[]
-  preferences    Preference[]
-  api_keys       ApiKey[]
-  userTiers      UserTier[]
+  id                  BigInt         @id @default(autoincrement())
+  username            String         @unique(map: "users_username_unique") @db.VarChar(255)
+  password            String         @db.VarChar(255)
+  admin               Boolean        @default(false)
+  created_at          DateTime       @db.Timestamp(0)
+  updated_at          DateTime       @db.Timestamp(0)
+  devices             Device[]
+  refresh_tokens      RefreshToken[]
+  preferences         Preference[]
+  api_keys            ApiKey[]
+  userTiers           UserTier[]
+  sentConnections     Connection[]   @relation("ConnectionRequester")
+  receivedConnections Connection[]   @relation("ConnectionAddressee")
+  deviceShares        DeviceShare[]
 
   @@map("users")
 }
@@ -122,5 +126,44 @@ model UserTier {
   user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_tier_user_id_foreign")
   tier       Tier     @relation(fields: [tier_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_tier_tier_id_foreign")
 
-  @@map("user_tier")
+  @@map("user_tiers")
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+model Connection {
+  id           BigInt           @id @default(autoincrement())
+  requester_id BigInt
+  addressee_id BigInt
+  status       ConnectionStatus @default(PENDING)
+  created_at   DateTime         @db.Timestamp(0)
+  updated_at   DateTime         @db.Timestamp(0)
+  requester    User             @relation(name: "ConnectionRequester", fields: [requester_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "connections_requester_id_foreign")
+  addressee    User             @relation(name: "ConnectionAddressee", fields: [addressee_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "connections_addressee_id_foreign")
+  deviceShares DeviceShare[]
+
+  @@unique([requester_id, addressee_id], map: "connections_user_id_unique")
+  @@map("connections")
+}
+
+model DeviceShare {
+  id            BigInt     @id @default(autoincrement())
+  connection_id BigInt
+  device_id     BigInt
+  user_id       BigInt
+  can_ring      Boolean    @default(false)
+  can_lock      Boolean    @default(false)
+  created_at    DateTime   @db.Timestamp(0)
+  updated_at    DateTime   @db.Timestamp(0)
+  connection    Connection @relation(fields: [connection_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "device_share_connection_id_foreign")
+  device        Device     @relation(fields: [device_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "device_share_device_id_foreign")
+  user          User       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "device_share_user_id_foreign")
+
+  @@unique([connection_id, device_id], map: "device_share_unique")
+  @@map("device_share")
 }
