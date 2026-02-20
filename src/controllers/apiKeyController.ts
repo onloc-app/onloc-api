@@ -22,7 +22,7 @@ export const createApiKey = async (
       },
     })
 
-    res.status(201).json({ apiKey: sanitizeData(newApiKey) })
+    res.status(201).json({ api_key: sanitizeData(newApiKey) })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not create api key" })
