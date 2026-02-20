@@ -39,7 +39,7 @@ router.use(authenticate)
  *             schema:
  *               type: object
  *               properties:
- *                 apiKey:
+ *                 api_key:
  *                   $ref: "#/components/schemas/ApiKeySafe"
  *             example:
  *               apiKey:
