@@ -71,7 +71,7 @@ app.use("/api/deviceshares", deviceShareRoutes)
 app.get("/api/status", async (req, res) => {
   try {
     res.status(200).json({
-      isSetup: await isSetup(),
+      is_setup: await isSetup(),
       registration: await isRegistrationEnabled(),
     })
   } catch (error) {
