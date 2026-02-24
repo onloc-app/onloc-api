@@ -135,6 +135,13 @@ export const rejectConnectionRequest = async (
       },
     })
 
+    // Delete associated shared devices
+    await prisma.deviceShare.deleteMany({
+      where: {
+        connection_id: updatedConnection.id,
+      },
+    })
+
     res.status(200).json({ connection: sanitizeData(updatedConnection) })
   } catch (error) {
     console.error(error)
