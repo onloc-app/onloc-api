@@ -125,7 +125,7 @@ export const registerUser = async (
 
     if (defaultTier) {
       const tier = await prisma.tier.findUnique({
-        where: { id: parseInt(defaultTier.value) },
+        where: { id: BigInt(defaultTier.value) },
       })
       if (tier) {
         await prisma.userTier.create({
