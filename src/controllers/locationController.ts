@@ -325,14 +325,11 @@ const getLocationsForDevice = async (
     throw new ApiError(403, "Forbidden")
   }
 
-  const dateRange = {
-    ...(startDate ? { gte: new Date(startDate) } : {}),
-    ...(endDate ? { lte: new Date(endDate) } : {}),
-  }
+  const dateRange = generateDateRange(startDate, endDate)
 
   const where = {
     device_id: deviceId,
-    ...(startDate || endDate ? { created_at: dateRange } : {}),
+    ...(dateRange ? { created_at: dateRange } : {}),
   }
 
   if (latest === "true") {
@@ -365,15 +362,12 @@ const getLocationsForOwnedDevices = async (
 
   const deviceIds = devices.map((device) => device.id)
 
-  const dateRange = {
-    ...(startDate ? { gte: new Date(startDate) } : {}),
-    ...(endDate ? { lte: new Date(endDate) } : {}),
-  }
+  const dateRange = generateDateRange(startDate, endDate)
 
   const fetchLocations = async (id: bigint) => {
     const where = {
       device_id: id,
-      ...(startDate || endDate ? { created_at: dateRange } : {}),
+      ...(dateRange ? { created_at: dateRange } : {}),
     }
 
     if (latest === "true") {
@@ -392,4 +386,27 @@ const getLocationsForOwnedDevices = async (
   }
 
   return Promise.all(deviceIds.map(fetchLocations))
+}
+
+function generateDateRange(
+  startDate?: string,
+  endDate?: string,
+): { lte?: Date; gte?: Date } | null {
+  const parseDate = (value?: string) => {
+    if (!value) return null
+    const d = new Date(value)
+    return isNaN(d.getTime()) ? null : d
+  }
+
+  const from = parseDate(startDate)
+  const to = parseDate(endDate)
+
+  if (!from && !to) return null
+
+  const dateRange = {
+    ...(from ? { gte: from } : {}),
+    ...(to ? { lte: to } : {}),
+  }
+
+  return dateRange
 }
