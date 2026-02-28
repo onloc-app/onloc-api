@@ -218,14 +218,14 @@ export const reorderTiers = async (
 ): Promise<void> => {
   try {
     const user = req.user!
-    const tiers: Tier[] = req.body
+    const { tiers }: { tiers: Tier[] } = req.body
 
     if (!user.admin) {
       res.status(403).json({ message: "Forbidden" })
       return
     }
 
-    if (!Array.isArray(tiers) || tiers.length === 0) {
+    if (!Array.isArray(tiers) || tiers.length <= 0) {
       res.status(400).json({ message: "Invalid payload" })
       return
     }
