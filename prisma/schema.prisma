@@ -11,6 +11,7 @@ model Device {
   id           BigInt        @id @default(autoincrement())
   user_id      BigInt
   name         String        @db.VarChar(255)
+  color        String?       @db.VarChar(255)
   icon         String?       @db.VarChar(255)
   can_ring     Boolean       @default(false)
   can_lock     Boolean       @default(false)

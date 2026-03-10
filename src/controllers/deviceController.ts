@@ -62,6 +62,7 @@ export const createDevice = async (
       data: {
         user_id: user.id,
         name: device.name,
+        color: device.color,
         icon: device.icon,
         can_ring: device.can_ring,
         can_lock: device.can_lock,
