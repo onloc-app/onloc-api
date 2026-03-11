@@ -385,6 +385,8 @@ export const readSharedDevices = async (
         }
         return {
           ...device,
+          can_ring: deviceShare.can_ring,
+          can_lock: deviceShare.can_lock,
           latest_location: latestLocation,
           device_share: filteredDeviceShare,
           is_connected: await checkConnection(device.id),
