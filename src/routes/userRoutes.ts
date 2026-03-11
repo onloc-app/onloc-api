@@ -68,7 +68,7 @@ router.get("/info", readUserInfo)
  * /api/users/{id}:
  *   get:
  *     summary: Get a single user
- *     description: Returns a single user by ID. Users may only fetch their own data unless they are an admin.
+ *     description: Returns a single user by ID. Users may only fetch their own data unless they are an admin. Else the returned data is minimized.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []

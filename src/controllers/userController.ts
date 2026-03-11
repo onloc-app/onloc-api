@@ -95,7 +95,15 @@ export const readUser = async (
     }
 
     if (BigInt(id as string) !== reqUser.id && !reqUser.admin) {
-      res.status(403).json({ message: "Forbidden" })
+      const rawUser = await prisma.user.findFirst({
+        where: { id: BigInt(id as string) },
+      })
+      if (!rawUser) {
+        res.status(404).json({ message: "User not found" })
+        return
+      }
+      const user: UserMin = { id: rawUser.id, username: rawUser.username }
+      res.status(200).json({ user: sanitizeData(user) })
       return
     }
 
