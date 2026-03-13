@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs"
 import type { Response } from "express"
-import { Prisma, type User } from "../generated/prisma"
+import { Prisma, type Avatar, type User } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
@@ -13,6 +13,7 @@ interface UserExtra extends UserSafe {
 interface UserMin {
   id: bigint
   username: string
+  avatar: Avatar | null
 }
 
 export const readUsers = async (
@@ -25,6 +26,7 @@ export const readUsers = async (
     if (reqUser.admin) {
       const rawUsers = await prisma.user.findMany({
         include: {
+          avatar: true,
           userTiers: {
             include: {
               tier: true,
@@ -57,6 +59,7 @@ export const readUsers = async (
               (sum, device) => sum + device.locations.length,
               0,
             ),
+            avatar: user.avatar,
           }
         }),
       )
@@ -65,12 +68,17 @@ export const readUsers = async (
       return
     }
 
-    const rawUsers = await prisma.user.findMany()
+    const rawUsers = await prisma.user.findMany({
+      include: {
+        avatar: true,
+      },
+    })
 
     const users: UserMin[] = rawUsers.map((user) => {
       return {
         id: user.id,
         username: user.username,
+        avatar: user.avatar,
       }
     })
 
@@ -97,12 +105,17 @@ export const readUser = async (
     if (BigInt(id as string) !== reqUser.id && !reqUser.admin) {
       const rawUser = await prisma.user.findFirst({
         where: { id: BigInt(id as string) },
+        include: { avatar: true },
       })
       if (!rawUser) {
         res.status(404).json({ message: "User not found" })
         return
       }
-      const user: UserMin = { id: rawUser.id, username: rawUser.username }
+      const user: UserMin = {
+        id: rawUser.id,
+        username: rawUser.username,
+        avatar: rawUser.avatar,
+      }
       res.status(200).json({ user: sanitizeData(user) })
       return
     }
@@ -136,9 +149,16 @@ export const readUserInfo = async (
       },
     })
 
+    const avatar = await prisma.avatar.findUnique({
+      where: {
+        user_id: user.id,
+      },
+    })
+
     const userExtra = {
       ...user,
       tier: userTier?.tier,
+      avatar: avatar,
     }
 
     res.status(200).json({ user: sanitizeData(userExtra) })

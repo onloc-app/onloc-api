@@ -16,7 +16,7 @@ model Device {
   can_ring     Boolean       @default(false)
   can_lock     Boolean       @default(false)
   created_at   DateTime      @db.Timestamp(0)
-  updated_at   DateTime      @db.Timestamp(0)
+  updated_at   DateTime      @updatedAt @db.Timestamp(0)
   user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "devices_user_id_foreign")
   locations    Location[]
   deviceShares DeviceShare[]
@@ -35,7 +35,7 @@ model Location {
   longitude         Float
   battery           Int?
   created_at        DateTime @db.Timestamp(0)
-  updated_at        DateTime @db.Timestamp(0)
+  updated_at        DateTime @updatedAt @db.Timestamp(0)
   device            Device   @relation(fields: [device_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "locations_device_id_foreign")
 
   @@map("locations")
@@ -46,7 +46,7 @@ model Setting {
   key        String   @db.VarChar(255)
   value      String   @db.VarChar(255)
   created_at DateTime @db.Timestamp(0)
-  updated_at DateTime @db.Timestamp(0)
+  updated_at DateTime @updatedAt @db.Timestamp(0)
 
   @@map("settings")
 }
@@ -57,7 +57,7 @@ model Preference {
   key        String   @db.VarChar(255)
   value      String   @db.VarChar(255)
   created_at DateTime @db.Timestamp(0)
-  updated_at DateTime @db.Timestamp(0)
+  updated_at DateTime @updatedAt @db.Timestamp(0)
   user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "preferences_user_id_foreign")
 
   @@map("preferences")
@@ -69,7 +69,7 @@ model User {
   password            String         @db.VarChar(255)
   admin               Boolean        @default(false)
   created_at          DateTime       @db.Timestamp(0)
-  updated_at          DateTime       @db.Timestamp(0)
+  updated_at          DateTime       @updatedAt @db.Timestamp(0)
   devices             Device[]
   refresh_tokens      RefreshToken[]
   preferences         Preference[]
@@ -78,6 +78,7 @@ model User {
   sentConnections     Connection[]   @relation("ConnectionRequester")
   receivedConnections Connection[]   @relation("ConnectionAddressee")
   deviceShares        DeviceShare[]
+  avatar              Avatar?
 
   @@map("users")
 }
@@ -88,7 +89,7 @@ model RefreshToken {
   token      String   @unique(map: "refresh_tokens_token_unique")
   agent      String?
   created_at DateTime @db.Timestamp(0)
-  updated_at DateTime @db.Timestamp(0)
+  updated_at DateTime @updatedAt @db.Timestamp(0)
   user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "refresh_tokens_user_id_foreign")
 
   @@map("refresh_tokens")
@@ -100,7 +101,7 @@ model ApiKey {
   name       String
   key        String   @unique(map: "api_keys_key_unique")
   created_at DateTime @db.Timestamp(0)
-  updated_at DateTime @db.Timestamp(0)
+  updated_at DateTime @updatedAt @db.Timestamp(0)
   user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "api_keys_user_id_foreign")
 
   @@map("api_keys")
@@ -123,7 +124,7 @@ model UserTier {
   user_id    BigInt
   tier_id    BigInt
   created_at DateTime @db.Timestamp(0)
-  updated_at DateTime @db.Timestamp(0)
+  updated_at DateTime @updatedAt @db.Timestamp(0)
   user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_tier_user_id_foreign")
   tier       Tier     @relation(fields: [tier_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_tier_tier_id_foreign")
 
@@ -143,7 +144,7 @@ model Connection {
   addressee_id BigInt
   status       ConnectionStatus @default(PENDING)
   created_at   DateTime         @db.Timestamp(0)
-  updated_at   DateTime         @db.Timestamp(0)
+  updated_at   DateTime         @updatedAt @db.Timestamp(0)
   requester    User             @relation(name: "ConnectionRequester", fields: [requester_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "connections_requester_id_foreign")
   addressee    User             @relation(name: "ConnectionAddressee", fields: [addressee_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "connections_addressee_id_foreign")
   deviceShares DeviceShare[]
@@ -160,11 +161,22 @@ model DeviceShare {
   can_ring      Boolean    @default(false)
   can_lock      Boolean    @default(false)
   created_at    DateTime   @db.Timestamp(0)
-  updated_at    DateTime   @db.Timestamp(0)
+  updated_at    DateTime   @updatedAt @db.Timestamp(0)
   connection    Connection @relation(fields: [connection_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "device_share_connection_id_foreign")
   device        Device     @relation(fields: [device_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "device_share_device_id_foreign")
   user          User       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "device_share_user_id_foreign")
 
   @@unique([connection_id, device_id], map: "device_share_unique")
-  @@map("device_share")
+  @@map("device_shares")
+}
+
+model Avatar {
+  id         BigInt   @id @default(autoincrement())
+  user_id    BigInt   @unique
+  url        String
+  created_at DateTime @db.Timestamp(0)
+  updated_at DateTime @updatedAt @db.Timestamp(0)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_avatars_user_id_foreign")
+
+  @@map("avatars")
 }

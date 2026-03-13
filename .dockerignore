@@ -32,3 +32,6 @@ Dockerfile
 .gitignore
 .github/
 .gitattributes
+
+# Ignore uploaded files
+uploads/*

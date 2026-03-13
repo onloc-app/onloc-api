@@ -3,13 +3,16 @@ import chalk from "chalk"
 import cors from "cors"
 import express from "express"
 import http from "http"
-import swaggerUi from "swagger-ui-express"
 import swaggerJSDoc, { type Options } from "swagger-jsdoc"
+import swaggerUi from "swagger-ui-express"
 import { isRegistrationEnabled, isSetup } from "./helpers/statusHelper"
 import logRequest from "./middlewares/logging"
 import apiKeyRoutes from "./routes/apiKeyRoutes"
 import authRoutes from "./routes/authRoutes"
+import avatarRoutes from "./routes/avatarRoutes"
+import connectionRoutes from "./routes/connectionRoutes"
 import deviceRoutes from "./routes/deviceRoutes"
+import deviceShareRoutes from "./routes/deviceShareRoutes"
 import locationRoutes from "./routes/locationRoutes"
 import preferenceRoutes from "./routes/preferenceRoutes"
 import settingRoutes from "./routes/settingRoutes"
@@ -17,8 +20,6 @@ import tierRoutes from "./routes/tierRoutes"
 import tokenRoutes from "./routes/tokenRoutes"
 import userRoutes from "./routes/userRoutes"
 import userTierRoutes from "./routes/userTierRoutes"
-import connectionRoutes from "./routes/connectionRoutes"
-import deviceShareRoutes from "./routes/deviceShareRoutes"
 import { createIO } from "./socket"
 
 const app = express()
@@ -48,6 +49,7 @@ app.use("/api/tiers", tierRoutes)
 app.use("/api/usertiers", userTierRoutes)
 app.use("/api/connections", connectionRoutes)
 app.use("/api/deviceshares", deviceShareRoutes)
+app.use("/api/avatars", avatarRoutes)
 
 /**
  * @openapi
@@ -79,6 +81,9 @@ app.get("/api/status", async (req, res) => {
     res.status(500).json({ message: "Internal server error" })
   }
 })
+
+// Static route for uploaded files
+app.use("/uploads", express.static("uploads"))
 
 // Swagger
 const swaggerOptions: Options = {
