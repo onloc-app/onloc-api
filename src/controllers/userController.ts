@@ -124,6 +124,9 @@ export const readUser = async (
       where: {
         id: BigInt(id as string),
       },
+      include: {
+        avatar: true,
+      },
     })
 
     res.status(200).json({ user: sanitizeData(user) })
