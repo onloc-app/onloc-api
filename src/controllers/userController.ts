@@ -10,7 +10,7 @@ interface UserExtra extends UserSafe {
   number_of_devices: number
   number_of_locations: number
 }
-interface UserMin {
+export interface UserMin {
   id: bigint
   username: string
   avatar: Avatar | null

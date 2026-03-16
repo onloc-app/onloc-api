@@ -3,9 +3,10 @@ import type { AuthenticatedRequest } from "../middlewares/auth"
 import { ConnectionStatus, type Connection } from "../generated/prisma"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
+import type { UserMin } from "./userController"
 
 interface ConnectionExtra extends Connection {
-  username: string | null
+  user: UserMin | null
 }
 
 export const sendConnectionRequest = async (
@@ -161,19 +162,23 @@ export const readConnections = async (
         OR: [{ requester_id: user.id }, { addressee_id: user.id }],
       },
       include: {
-        requester: { select: { username: true } },
-        addressee: { select: { username: true } },
+        requester: { include: { avatar: true } },
+        addressee: { include: { avatar: true } },
       },
     })
 
     const connections: ConnectionExtra[] = rawConnections.map((connection) => {
-      const otherUsername =
+      const otherUser =
         connection.requester_id === user.id
-          ? connection.addressee.username
-          : connection.requester.username
+          ? connection.addressee
+          : connection.requester
       return {
         ...connection,
-        username: otherUsername,
+        user: {
+          id: otherUser.id,
+          username: otherUser.username,
+          avatar: otherUser.avatar,
+        },
       }
     })
 
