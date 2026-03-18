@@ -55,8 +55,17 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       },
     })
 
+    const avatar = await prisma.avatar.findUnique({
+      where: { user_id: user.id },
+    })
+
+    const userExtra = {
+      ...user,
+      avatar: avatar,
+    }
+
     res.status(200).json({
-      user: sanitizeData(user),
+      user: sanitizeData(userExtra),
       access_token: accessToken,
       refresh_token: refreshToken,
     })
