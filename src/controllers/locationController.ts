@@ -67,6 +67,10 @@ export const createLocation = async (
         altitude_accuracy: location.altitude_accuracy,
         latitude: location.latitude,
         longitude: location.longitude,
+        bearing: location.bearing,
+        bearing_accuracy_degrees: location.bearing_accuracy_degrees,
+        speed: location.speed,
+        speed_accuracy: location.speed_accuracy,
         battery:
           location.battery != null &&
           location.battery > 0 &&
