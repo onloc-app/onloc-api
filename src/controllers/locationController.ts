@@ -27,11 +27,11 @@ async function emitAction(
       },
     })
     if (deviceShare) {
-      io.to(`user_${deviceShare.user_id}`).emit("locations-change", data)
+      io.to(`user-${deviceShare.user_id}`).emit("locations-change", data)
     }
   }
 
-  io.to(`user_${userId.toString()}`).emit("locations-change", data)
+  io.to(`user-${userId.toString()}`).emit("locations-change", data)
   io.to(`admin`).emit("admin-locations-change", data)
 }
 

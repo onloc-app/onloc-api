@@ -27,6 +27,9 @@ export function createIO(
 
     console.log(`New client connected: ${socket.id}`)
 
+    socket.join(`user-${user.id}`)
+    console.log(`User ${user.username} joined room`)
+
     socket.on("register-device", async ({ device_id }) => {
       if (!device_id) {
         console.error("Event: register-device, called without device_id")
@@ -41,7 +44,7 @@ export function createIO(
       }
 
       socket.join(`device-${device_id}`)
-      io!.to(`user_${user.id}`).emit("connections-change")
+      io!.to(`user-${user.id}`).emit("connections-change")
       console.log(`Device ${device_id} joined room`)
 
       const formattedDeviceId = BigInt(device_id)
@@ -75,7 +78,7 @@ export function createIO(
       if (!device) return socket.emit("error", "Device not found")
 
       socket.leave(`device-${device_id}`)
-      io!.to(`user_${user.id}`).emit("connections-change")
+      io!.to(`user-${user.id}`).emit("connections-change")
       console.log(`Device ${device_id} left room`)
     })
 
