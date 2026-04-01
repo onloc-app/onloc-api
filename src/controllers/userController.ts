@@ -14,6 +14,8 @@ export interface UserMin {
   id: bigint
   username: string
   avatar: Avatar | null
+  created_at: Date
+  updated_at: Date
 }
 
 export const readUsers = async (
@@ -79,6 +81,8 @@ export const readUsers = async (
         id: user.id,
         username: user.username,
         avatar: user.avatar,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
       }
     })
 
@@ -115,6 +119,8 @@ export const readUser = async (
         id: rawUser.id,
         username: rawUser.username,
         avatar: rawUser.avatar,
+        created_at: rawUser.created_at,
+        updated_at: rawUser.updated_at,
       }
       res.status(200).json({ user: sanitizeData(user) })
       return
