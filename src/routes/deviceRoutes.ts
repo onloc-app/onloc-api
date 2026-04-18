@@ -314,6 +314,43 @@ router.post("/:id/ring", ringDevice)
  */
 router.post("/:id/lock", lockDevice)
 
+/**
+ * @openapi
+ * /api/devices/{id}/flash:
+ *   post:
+ *     summary: Send flash command to device
+ *     description: |
+ *       Triggers a temporary flash on the target device when supported.
+ *       If the device is online the command is delivered immediately; otherwise it will be queued
+ *       for delivery when the device next comes online. The implementation of this command is
+ *       controlled by the device. For example, a phone's flashlight or a LED on a Raspberry Pi.
+ *     tags: [Devices]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Device ID
+ *         example: "123"
+ *     responses:
+ *       200:
+ *         description: Flash command sent (device online)
+ *       202:
+ *         description: Flash command queued (device offline)
+ *       400:
+ *         $ref: "#/components/responses/BadRequest"
+ *       403:
+ *         $ref: "#/components/responses/Forbidden"
+ *       404:
+ *         $ref: "#/components/responses/NotFound"
+ *       401:
+ *         $ref: "#/components/responses/Unauthorized"
+ *       500:
+ *         $ref: "#/components/responses/InternalError"
+ */
 router.post("/:id/flash", flashDevice)
 
 export default router
