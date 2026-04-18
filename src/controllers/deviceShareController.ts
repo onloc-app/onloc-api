@@ -65,6 +65,7 @@ export const createDeviceShare = async (
         user_id: otherUserId,
         can_ring: deviceShare.can_ring,
         can_lock: deviceShare.can_lock,
+        can_flash: deviceShare.can_flash,
         created_at: new Date(),
         updated_at: new Date(),
       },

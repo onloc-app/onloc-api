@@ -2,6 +2,7 @@ import { Router } from "express"
 import {
   createDevice,
   deleteDevice,
+  flashDevice,
   lockDevice,
   readDevice,
   readDevices,
@@ -312,5 +313,7 @@ router.post("/:id/ring", ringDevice)
  *         $ref: "#/components/responses/InternalError"
  */
 router.post("/:id/lock", lockDevice)
+
+router.post("/:id/flash", flashDevice)
 
 export default router

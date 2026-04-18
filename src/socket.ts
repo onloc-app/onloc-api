@@ -5,6 +5,7 @@ import { authenticateIO } from "./middlewares/auth"
 import prisma from "./prisma"
 import { ringQueue } from "./services/ringQueue"
 import { lockQueue } from "./services/lockQueue"
+import { flashQueue } from "./services/flashQueue"
 
 let io: SocketIOServer | null = null
 
@@ -64,6 +65,13 @@ export function createIO(
           .emit("lock-command", { message: message })
         console.log(`Sent queued lock to ${formattedDeviceId}`)
         lockQueue.remove(formattedDeviceId)
+      }
+
+      // Flash the device if it's in the queue
+      if (flashQueue.has(formattedDeviceId)) {
+        io!.to(`device-${formattedDeviceId}`).emit("flash-command")
+        console.log(`Sent queued flash to ${formattedDeviceId}`)
+        flashQueue.remove(formattedDeviceId)
       }
     })
 

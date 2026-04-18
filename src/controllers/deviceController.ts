@@ -16,6 +16,7 @@ import {
   hasReadAccessToDevice,
   hasRingAccessToDevice,
 } from "../helpers/access"
+import { flashQueue } from "../services/flashQueue"
 
 interface DeviceExtra extends Device {
   latest_location?: Location | null
@@ -66,6 +67,7 @@ export const createDevice = async (
         icon: device.icon,
         can_ring: device.can_ring,
         can_lock: device.can_lock,
+        can_flash: device.can_flash,
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -255,7 +257,7 @@ export const ringDevice = async (
       return
     }
 
-    const device = await prisma.device.findFirst({
+    const device = await prisma.device.findUnique({
       where: {
         id: formattedId,
       },
@@ -311,7 +313,7 @@ export const lockDevice = async (
       return
     }
 
-    const device = await prisma.device.findFirst({
+    const device = await prisma.device.findUnique({
       where: {
         id: formattedId,
       },
@@ -342,6 +344,61 @@ export const lockDevice = async (
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Could not lock device" })
+  }
+}
+
+export const flashDevice = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user!
+    const { id } = req.params
+
+    if (!id) {
+      res.status(400).json({ message: "Id is missing" })
+      return
+    }
+
+    const formattedId = BigInt(id as string)
+
+    const hasAccess = await hasLockAccessToDevice(formattedId, user.id)
+    if (!hasAccess) {
+      res.status(403).json({ message: "Not authorized to lock this device" })
+      return
+    }
+
+    const device = await prisma.device.findUnique({
+      where: {
+        id: formattedId,
+      },
+    })
+
+    if (!device) {
+      res.status(404).json({ message: "Device not found" })
+      return
+    }
+
+    if (!device.can_flash) {
+      res.status(403).json({ message: "Device cannot flash" })
+      return
+    }
+
+    if (!(await checkConnection(formattedId))) {
+      flashQueue.add(formattedId)
+      console.log(`Added ${id} to flash queue`)
+      res.status(202).send()
+      return
+    }
+
+    const io = getIO()
+    io.to(`device-${id}`).emit("flash-command")
+    console.log(`Sent flash to ${id}`)
+
+    res.status(200).send()
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not flash device" })
   }
 }
 
