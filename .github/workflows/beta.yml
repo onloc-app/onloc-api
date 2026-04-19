@@ -32,9 +32,10 @@ jobs:
             type=raw,value=beta
 
       - name: Build and push beta Docker image
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
