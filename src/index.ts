@@ -21,6 +21,7 @@ import tokenRoutes from "./routes/tokenRoutes"
 import userRoutes from "./routes/userRoutes"
 import userTierRoutes from "./routes/userTierRoutes"
 import { createIO } from "./socket"
+import prisma from "./prisma"
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -79,6 +80,27 @@ app.get("/api/status", async (req, res) => {
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Internal server error" })
+  }
+})
+
+/**
+ * @openapi
+ * /api/health:
+ *  get:
+ *    summary: Basic health check to make sure everything is running
+ *    tags: [health]
+ *    responses:
+ *      200:
+ *        description: Server is ready to go
+ *      503:
+ *        description: Server hasn't been initialized yet
+ */
+app.get("/api/health", async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    res.sendStatus(200)
+  } catch {
+    res.sendStatus(503)
   }
 })
 
