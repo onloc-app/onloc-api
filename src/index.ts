@@ -5,7 +5,11 @@ import express from "express"
 import http from "http"
 import swaggerJSDoc, { type Options } from "swagger-jsdoc"
 import swaggerUi from "swagger-ui-express"
-import { isRegistrationEnabled, isSetup } from "./helpers/statusHelper"
+import {
+  getAPIVersion,
+  isRegistrationEnabled,
+  isSetup,
+} from "./helpers/statusHelper"
 import logRequest from "./middlewares/logging"
 import apiKeyRoutes from "./routes/apiKeyRoutes"
 import authRoutes from "./routes/authRoutes"
@@ -70,12 +74,14 @@ app.use("/api/avatars", avatarRoutes)
  *                  type: boolean
  *                registration:
  *                  type: boolean
+ *                version: string
  */
 app.get("/api/status", async (req, res) => {
   try {
     res.status(200).json({
       is_setup: await isSetup(),
       registration: await isRegistrationEnabled(),
+      version: getAPIVersion(),
     })
   } catch (error) {
     console.error(error)

@@ -1,4 +1,6 @@
+import { resolve } from "url"
 import prisma from "../prisma"
+import { readFileSync } from "fs"
 
 export async function isSetup(): Promise<boolean> {
   const admin = await prisma.user.findFirst({
@@ -19,4 +21,11 @@ export async function isRegistrationEnabled(): Promise<boolean> {
   })
 
   return !!registration
+}
+
+export function getAPIVersion(): string {
+  const { version } = JSON.parse(
+    readFileSync(resolve(__dirname, "../package.json"), "utf-8"),
+  )
+  return version
 }
