@@ -45,11 +45,16 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const refreshToken = generateRefreshToken(user.id.toString())
 
     // Store the refresh token
-    await prisma.refreshToken.create({
-      data: {
+    await prisma.refreshToken.upsert({
+      where: { token: refreshToken },
+      update: {
+        agent: agent,
+        updated_at: new Date(),
+      },
+      create: {
         token: refreshToken,
         user_id: user.id,
-        agent,
+        agent: agent,
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -153,11 +158,16 @@ export const registerUser = async (
     const refreshToken = generateRefreshToken(newUser.id.toString())
 
     // Store the refresh token
-    await prisma.refreshToken.create({
-      data: {
+    await prisma.refreshToken.upsert({
+      where: { token: refreshToken },
+      update: {
+        agent: agent,
+        updated_at: new Date(),
+      },
+      create: {
         token: refreshToken,
         user_id: newUser.id,
-        agent,
+        agent: agent,
         created_at: new Date(),
         updated_at: new Date(),
       },
