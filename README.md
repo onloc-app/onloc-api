@@ -10,13 +10,6 @@
 
 Onloc is a service that allows you to track and locate your devices. This repository contains the back-end used for storing and retrieving Onloc's data.
 
-> [!NOTE]
-> You can find the other repositories here:
->
-> - Front-end: https://github.com/onloc-app/onloc-ui
-> - Android: https://github.com/onloc-app/onloc-android
-> - Deployment: https://github.com/onloc-app/onloc-deployment
-
 ## Installation
 
 Instructions can be found here: https://github.com/onloc-app/onloc-deployment
