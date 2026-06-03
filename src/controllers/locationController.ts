@@ -21,14 +21,14 @@ async function emitAction(
   }
 
   for (const location of locations) {
-    const deviceShare = await prisma.deviceShare.findFirst({
+    const deviceShares = await prisma.deviceShare.findMany({
       where: {
         device_id: location.device_id,
       },
     })
-    if (deviceShare) {
+    deviceShares.forEach((deviceShare) => {
       io.to(`user-${deviceShare.user_id}`).emit("locations-change", data)
-    }
+    })
   }
 
   io.to(`user-${userId.toString()}`).emit("locations-change", data)
