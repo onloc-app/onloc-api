@@ -12,6 +12,7 @@ import { ringQueue } from "../services/ringQueue"
 import { checkPermissions } from "./userTierController"
 import { lockQueue } from "../services/lockQueue"
 import {
+  hasFlashAccessToDevice,
   hasLockAccessToDevice,
   hasReadAccessToDevice,
   hasRingAccessToDevice,
@@ -362,9 +363,9 @@ export const flashDevice = async (
 
     const formattedId = BigInt(id as string)
 
-    const hasAccess = await hasLockAccessToDevice(formattedId, user.id)
+    const hasAccess = await hasFlashAccessToDevice(formattedId, user.id)
     if (!hasAccess) {
-      res.status(403).json({ message: "Not authorized to lock this device" })
+      res.status(403).json({ message: "Not authorized to flash this device" })
       return
     }
 

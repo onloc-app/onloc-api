@@ -65,3 +65,14 @@ export const hasLockAccessToDevice = async (
 
   return !!deviceShare?.can_lock
 }
+
+export const hasFlashAccessToDevice = async (
+  device_id: bigint,
+  user_id: bigint,
+): Promise<boolean> => {
+  if (await ownsDevice(device_id, user_id)) return true
+
+  const deviceShare = await grabDeviceShare(device_id, user_id)
+
+  return !!deviceShare?.can_flash
+}
