@@ -1,13 +1,8 @@
 import type { Response } from "express"
 import type { AuthenticatedRequest } from "../middlewares/auth"
-import { ConnectionStatus, type Connection } from "../generated/prisma"
+import { ConnectionStatus } from "../generated/prisma"
 import prisma from "../prisma"
 import { sanitizeData } from "../utils"
-import type { UserMin } from "./userController"
-
-interface ConnectionExtra extends Connection {
-  user: UserMin | null
-}
 
 export const sendConnectionRequest = async (
   req: AuthenticatedRequest,
@@ -157,7 +152,7 @@ export const readConnections = async (
   try {
     const user = req.user!
 
-    const rawConnections = await prisma.connection.findMany({
+    const connections = await prisma.connection.findMany({
       where: {
         OR: [{ requester_id: user.id }, { addressee_id: user.id }],
       },
@@ -165,21 +160,6 @@ export const readConnections = async (
         requester: { include: { avatar: true } },
         addressee: { include: { avatar: true } },
       },
-    })
-
-    const connections: ConnectionExtra[] = rawConnections.map((connection) => {
-      const otherUser =
-        connection.requester_id === user.id
-          ? connection.addressee
-          : connection.requester
-      return {
-        ...connection,
-        user: {
-          id: otherUser.id,
-          username: otherUser.username,
-          avatar: otherUser.avatar,
-        },
-      }
     })
 
     res.status(200).send({ connections: sanitizeData(connections) })

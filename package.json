@@ -47,7 +47,8 @@
   },
   "scripts": {
     "dev": "bun run src/index.ts",
-    "start": "bun run src/index.ts",
+    "start": "bun dist/index.js",
+    "build": "bun build src/index.ts --outdir dist --target bun",
     "mikro-orm": "mikro-orm",
     "lint": "eslint ."
   }
