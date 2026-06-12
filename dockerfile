@@ -22,7 +22,6 @@ RUN bun install --frozen-lockfile --production
 COPY --from=base /app/dist ./dist
 COPY --from=base /app/prisma ./prisma
 COPY --from=base /app/package.json ./package.json
-COPY --from=base /app/src/generated ./src/generated
 
 EXPOSE 4000
 

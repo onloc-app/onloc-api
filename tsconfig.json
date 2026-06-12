@@ -27,7 +27,7 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
 
-    "types": ["bun"]
+    "types": ["bun", "node"]
   },
   "include": ["src/**/*", "prisma.config.ts"],
 }
