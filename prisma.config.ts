@@ -3,6 +3,6 @@ import { defineConfig } from "prisma/config"
 
 export default defineConfig({
   datasource: {
-    url: process.env.DATABASE_URL!,
+    url: Bun.env.DATABASE_URL!,
   },
 })
