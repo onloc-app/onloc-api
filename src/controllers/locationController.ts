@@ -71,12 +71,14 @@ export const createLocation = async (
         bearing_accuracy_degrees: location.bearing_accuracy_degrees,
         speed: location.speed,
         speed_accuracy: location.speed_accuracy,
+        provider: location.provider,
         battery:
           location.battery != null &&
-          location.battery > 0 &&
+          location.battery >= 0 &&
           location.battery <= 100
             ? location.battery
             : undefined,
+        charging: location.charging,
         created_at: new Date(),
         updated_at: new Date(),
       },

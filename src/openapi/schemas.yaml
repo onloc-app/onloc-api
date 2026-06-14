@@ -188,10 +188,16 @@ components:
         altitude_accuracy:
           type: number
           nullable: true
+        provider:
+          type: string
+          nullable: true
         battery:
           type: integer
           nullable: true
-          description: Battery percentage (1-100)
+          description: Battery percentage (0-100)
+        charging:
+          type: boolean
+          nullable: true
         created_at:
           type: string
           format: date-time
