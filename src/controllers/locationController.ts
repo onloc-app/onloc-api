@@ -79,7 +79,7 @@ export const createLocation = async (
             ? location.battery
             : undefined,
         charging: location.charging,
-        created_at: new Date(),
+        created_at: location.created_at ?? new Date(),
         updated_at: new Date(),
       },
     })
