@@ -74,7 +74,8 @@ app.use("/api/avatars", avatarRoutes)
  *                  type: boolean
  *                registration:
  *                  type: boolean
- *                version: string
+ *                version:
+ *                  type: string
  */
 app.get("/api/status", async (req, res) => {
   try {
