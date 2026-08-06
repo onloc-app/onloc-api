@@ -70,7 +70,7 @@ app.use("/api/avatars", avatarRoutes)
  *            schema:
  *              type: object
  *              properties:
- *                isSetup:
+ *                is_setup:
  *                  type: boolean
  *                registration:
  *                  type: boolean
@@ -152,8 +152,8 @@ server.listen(PORT, () => {
   console.log(`Server running at ${chalk.yellow(`http://localhost:${PORT}`)}`)
 
   bonjour.publish({
-    name: "onloc",
-    type: "http",
+    name: "Onloc Server",
+    type: "onloc",
     protocol: "tcp",
     port: Number(PORT),
   })
