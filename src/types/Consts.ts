@@ -1,0 +1,6 @@
+export const RING_COMMAND = "ring-command"
+export const LOCK_COMMAND = "lock-command"
+export const FLASH_COMMAND = "flash-command"
+export const CONNECTIONS_CHANGE = "connections-change"
+export const REGISTER_DEVICE = "register-device"
+export const UNREGISTER_DEVICE = "unregister-device"

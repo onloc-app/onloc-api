@@ -7,7 +7,7 @@ import {
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { getIO } from "../socket"
-import { sanitizeData } from "../utils"
+import { sanitizeData, sendCommandToDeviceByPush } from "../utils"
 import { ringQueue } from "../services/ringQueue"
 import { checkPermissions } from "./userTierController"
 import { lockQueue } from "../services/lockQueue"
@@ -18,6 +18,7 @@ import {
   hasRingAccessToDevice,
 } from "../helpers/access"
 import { flashQueue } from "../services/flashQueue"
+import { FLASH_COMMAND, LOCK_COMMAND, RING_COMMAND } from "../types/Consts"
 
 interface DeviceExtra extends Device {
   latest_location?: Location | null
@@ -282,7 +283,8 @@ export const ringDevice = async (
     }
 
     const io = getIO()
-    io.to(`device-${id}`).emit("ring-command")
+    io.to(`device-${id}`).emit(RING_COMMAND)
+    sendCommandToDeviceByPush(formattedId, RING_COMMAND)
     console.log(`Sent ring to ${id}`)
 
     res.status(200).send()
@@ -338,7 +340,10 @@ export const lockDevice = async (
     }
 
     const io = getIO()
-    io.to(`device-${id}`).emit("lock-command", { message: message })
+    io.to(`device-${id}`).emit(LOCK_COMMAND, { message: message })
+    sendCommandToDeviceByPush(BigInt(formattedId), LOCK_COMMAND, {
+      message: message,
+    })
     console.log(`Sent lock to ${id}`)
 
     res.status(200).send()
@@ -393,7 +398,8 @@ export const flashDevice = async (
     }
 
     const io = getIO()
-    io.to(`device-${id}`).emit("flash-command")
+    io.to(`device-${id}`).emit(FLASH_COMMAND)
+    sendCommandToDeviceByPush(formattedId, FLASH_COMMAND)
     console.log(`Sent flash to ${id}`)
 
     res.status(200).send()
@@ -460,8 +466,13 @@ export const readSharedDevices = async (
   }
 }
 
-export const checkConnection = async (id: bigint) => {
+export const checkConnection = async (id: bigint): Promise<boolean> => {
   const roomName = `device-${id}`
   const socketsInRoom = await getIO().in(roomName).fetchSockets()
-  return socketsInRoom.length > 0
+  if (socketsInRoom.length > 0) return true
+
+  const providerCount = await prisma.unifiedPushProvider.count({
+    where: { device_id: id },
+  })
+  return providerCount > 0
 }

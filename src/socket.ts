@@ -6,6 +6,14 @@ import prisma from "./prisma"
 import { ringQueue } from "./services/ringQueue"
 import { lockQueue } from "./services/lockQueue"
 import { flashQueue } from "./services/flashQueue"
+import {
+  CONNECTIONS_CHANGE,
+  FLASH_COMMAND,
+  LOCK_COMMAND,
+  REGISTER_DEVICE,
+  RING_COMMAND,
+  UNREGISTER_DEVICE,
+} from "./types/Consts"
 
 let io: SocketIOServer | null = null
 
@@ -31,9 +39,9 @@ export function createIO(
     socket.join(`user-${user.id}`)
     console.log(`User ${user.username} joined room`)
 
-    socket.on("register-device", async ({ device_id }) => {
+    socket.on(REGISTER_DEVICE, async ({ device_id }) => {
       if (!device_id) {
-        console.error("Event: register-device, called without device_id")
+        console.error(`Event: ${REGISTER_DEVICE}, called without device_id`)
         return
       }
       const device = await prisma.device.findUnique({
@@ -45,14 +53,14 @@ export function createIO(
       }
 
       socket.join(`device-${device_id}`)
-      io!.to(`user-${user.id}`).emit("connections-change")
+      io!.to(`user-${user.id}`).emit(CONNECTIONS_CHANGE)
       console.log(`Device ${device_id} joined room`)
 
       const formattedDeviceId = BigInt(device_id)
 
       // Ring the device if it's in the queue
       if (ringQueue.has(formattedDeviceId)) {
-        io!.to(`device-${formattedDeviceId}`).emit("ring-command")
+        io!.to(`device-${formattedDeviceId}`).emit(RING_COMMAND)
         console.log(`Sent queued ring to ${formattedDeviceId}`)
         ringQueue.remove(formattedDeviceId)
       }
@@ -62,22 +70,22 @@ export function createIO(
         const message = lockQueue.getMessage(formattedDeviceId)
         io!
           .to(`device-${formattedDeviceId}`)
-          .emit("lock-command", { message: message })
+          .emit(LOCK_COMMAND, { message: message })
         console.log(`Sent queued lock to ${formattedDeviceId}`)
         lockQueue.remove(formattedDeviceId)
       }
 
       // Flash the device if it's in the queue
       if (flashQueue.has(formattedDeviceId)) {
-        io!.to(`device-${formattedDeviceId}`).emit("flash-command")
+        io!.to(`device-${formattedDeviceId}`).emit(FLASH_COMMAND)
         console.log(`Sent queued flash to ${formattedDeviceId}`)
         flashQueue.remove(formattedDeviceId)
       }
     })
 
-    socket.on("unregister-device", async ({ device_id }) => {
+    socket.on(UNREGISTER_DEVICE, async ({ device_id }) => {
       if (!device_id) {
-        console.error("Event: unregister-device, called without device_id")
+        console.error(`Event: ${UNREGISTER_DEVICE}, called without device_id`)
         return
       }
       const device = await prisma.device.findUnique({
@@ -86,7 +94,7 @@ export function createIO(
       if (!device) return socket.emit("error", "Device not found")
 
       socket.leave(`device-${device_id}`)
-      io!.to(`user-${user.id}`).emit("connections-change")
+      io!.to(`user-${user.id}`).emit(CONNECTIONS_CHANGE)
       console.log(`Device ${device_id} left room`)
     })
 

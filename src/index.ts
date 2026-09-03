@@ -22,10 +22,12 @@ import preferenceRoutes from "./routes/preferenceRoutes"
 import settingRoutes from "./routes/settingRoutes"
 import tierRoutes from "./routes/tierRoutes"
 import tokenRoutes from "./routes/tokenRoutes"
+import unifiedPushRoutes from "./routes/unifiedPushRoutes"
 import userRoutes from "./routes/userRoutes"
 import userTierRoutes from "./routes/userTierRoutes"
 import { createIO } from "./socket"
 import prisma from "./prisma"
+import { scheduleCleanupPushProviders } from "./jobs/cleanupPushProviders"
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -55,6 +57,7 @@ app.use("/api/usertiers", userTierRoutes)
 app.use("/api/connections", connectionRoutes)
 app.use("/api/deviceshares", deviceShareRoutes)
 app.use("/api/avatars", avatarRoutes)
+app.use("/api/unifiedpush", unifiedPushRoutes)
 
 /**
  * @openapi
@@ -120,7 +123,7 @@ const swaggerOptions: Options = {
     openapi: "3.0.0",
     info: {
       title: "Onloc API",
-      version: "1.1.0",
+      version: "1.2.8",
     },
     components: {
       securitySchemes: {
@@ -158,3 +161,6 @@ server.listen(PORT, () => {
     port: Number(PORT),
   })
 })
+
+// Launch cron jobs
+scheduleCleanupPushProviders()
