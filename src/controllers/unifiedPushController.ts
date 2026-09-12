@@ -46,7 +46,7 @@ export const register = async (
     })
 
     // Check queues and send commands
-    sendQueuedCommands(rawProvider.device_id)
+    sendQueuedCommands(provider.device_id)
 
     // Tell WebSocket listeners that a new device is online
     const io = getIO()
@@ -72,15 +72,11 @@ export const unregister = async (
       return
     }
 
-    try {
-      await prisma.unifiedPushProvider.delete({
+    await prisma.unifiedPushProvider.deleteMany({
         where: {
           endpoint_url: endpointUrl,
         },
       })
-    } catch (error) {
-      console.error(error)
-    }
 
     // Tell WebSocket listeners that a device went offline
     const io = getIO()
@@ -94,8 +90,19 @@ export const unregister = async (
 }
 
 function sendQueuedCommands(deviceId: bigint) {
-  if (ringQueue.has(deviceId)) sendCommandToDeviceByPush(deviceId, RING_COMMAND)
-  if (lockQueue.has(deviceId)) sendCommandToDeviceByPush(deviceId, LOCK_COMMAND)
-  if (flashQueue.has(deviceId))
+  if (ringQueue.has(deviceId)) {
+    ringQueue.remove(deviceId)
+    console.log(`Sent queued ring to ${deviceId}`)
+    sendCommandToDeviceByPush(deviceId, RING_COMMAND)
+  }
+  if (lockQueue.has(deviceId)) {
+    lockQueue.remove(deviceId)
+    console.log(`Sent queued lock to ${deviceId}`)
+    sendCommandToDeviceByPush(deviceId, LOCK_COMMAND)
+  }
+  if (flashQueue.has(deviceId)) {
+    flashQueue.remove(deviceId)
+    console.log(`Sent queued flash to ${deviceId}`)
     sendCommandToDeviceByPush(deviceId, FLASH_COMMAND)
+  }
 }
