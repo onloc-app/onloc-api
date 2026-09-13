@@ -28,7 +28,7 @@ export async function sendCommandByPush(
         body: payload,
       })
       if (res.status === 404 || res.status === 410) {
-        await prisma.unifiedPushProvider.delete({
+        await prisma.unifiedPushProvider.deleteMany({
           where: { id: provider.id },
         })
         return true
@@ -46,7 +46,7 @@ export async function sendCommandByPush(
     }
   } catch (error: any) {
     if (error.statusCode === 404 || error.statusCode === 410) {
-      await prisma.unifiedPushProvider.delete({
+      await prisma.unifiedPushProvider.deleteMany({
         where: { id: provider.id },
       })
       return true
