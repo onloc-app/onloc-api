@@ -1,6 +1,6 @@
 import type { UnifiedPushProvider } from "./generated/prisma"
 import prisma from "./prisma"
-import webpush from "web-push"
+import webpush, { WebPushError } from "web-push"
 
 export function sanitizeData(data: unknown) {
   return JSON.parse(
@@ -44,14 +44,16 @@ export async function sendCommandByPush(
       )
       return false
     }
-  } catch (error: any) {
-    if (error.statusCode === 404 || error.statusCode === 410) {
-      await prisma.unifiedPushProvider.deleteMany({
-        where: { id: provider.id },
-      })
-      return true
+  } catch (error) {
+    if (error instanceof WebPushError) {
+      if (error.statusCode === 404 || error.statusCode === 410) {
+        await prisma.unifiedPushProvider.deleteMany({
+          where: { id: provider.id },
+        })
+        return true
+      }
+      console.error(error)
     }
-    console.error(error)
     return false
   }
 }
