@@ -27,6 +27,28 @@ export const register = async (
       return
     }
 
+    const device = await prisma.device.findFirst({
+      where: {
+        id: rawProvider.device_id,
+        user_id: user.id,
+      },
+    })
+
+    if (!device) {
+      res.status(404).json({ message: "Device not found" })
+      return
+    }
+
+    const existingProvider = await prisma.unifiedPushProvider.findUnique({
+      where: { endpoint_url: rawProvider.endpoint_url },
+      include: { device: true },
+    })
+
+    if (existingProvider && existingProvider.device.user_id !== user.id) {
+      res.status(403).json({ message: "Unauthorized" })
+      return
+    }
+
     const provider = await prisma.unifiedPushProvider.upsert({
       where: { endpoint_url: rawProvider.endpoint_url },
       update: {
@@ -72,11 +94,33 @@ export const unregister = async (
       return
     }
 
+    const provider = await prisma.unifiedPushProvider.findUnique({
+      where: {
+        endpoint_url: endpointUrl,
+      },
+      include: {
+        device: true,
+      },
+    })
+
+    if (!provider) {
+      res.status(404).json({ message: "Provider not found" })
+      return
+    }
+
+    if (provider.device.user_id !== user.id) {
+      res.status(403).json({ message: "Unauthorized" })
+      return
+    }
+
     await prisma.unifiedPushProvider.deleteMany({
-        where: {
-          endpoint_url: endpointUrl,
+      where: {
+        endpoint_url: endpointUrl,
+        device: {
+          user_id: user.id,
         },
-      })
+      },
+    })
 
     // Tell WebSocket listeners that a device went offline
     const io = getIO()
