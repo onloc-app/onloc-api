@@ -1,5 +1,5 @@
 import { FLASH_COMMAND } from "../types/Consts"
-import { sendCommandToDeviceByPush } from "../utils"
+import { sendCommandToDeviceByPush } from "../helpers/push"
 import { Command } from "./Command"
 
 export class FlashCommand extends Command {

@@ -1,6 +1,6 @@
 import cron from "node-cron"
 import prisma from "../prisma"
-import { sendCommandByPush } from "../utils"
+import { sendCommandByPush } from "../helpers/push"
 
 export async function scheduleCleanupPushProviders() {
   cron.schedule("*/15 * * * *", async () => {
