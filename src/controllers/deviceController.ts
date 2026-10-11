@@ -8,25 +8,25 @@ import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { getIO } from "../socket"
 import { sanitizeData } from "../utils"
-import { ringQueue } from "../services/ringQueue"
 import { checkPermissions } from "./userTierController"
-import { lockQueue } from "../services/lockQueue"
 import {
   hasFlashAccessToDevice,
   hasLockAccessToDevice,
   hasReadAccessToDevice,
   hasRingAccessToDevice,
 } from "../helpers/access"
-import { flashQueue } from "../services/flashQueue"
 import { LockCommand } from "../commands/LockCommand"
 import { FlashCommand } from "../commands/FlashCommand"
 import { RingCommand } from "../commands/RingCommand"
+import { QueueService } from "../services/QueueService"
 
 interface DeviceExtra extends Device {
   latest_location?: Location | null
   device_share?: DeviceShare | null
   is_connected: boolean
 }
+
+const queueService = QueueService.getInstance()
 
 export const createDevice = async (
   req: AuthenticatedRequest,
@@ -278,7 +278,7 @@ export const ringDevice = async (
     }
 
     if (!(await checkConnection(formattedId))) {
-      ringQueue.add(formattedId)
+      queueService.ringQueue.add(formattedId)
       console.log(`Added ${id} to ring queue`)
       res.status(202).send()
       return
@@ -332,7 +332,7 @@ export const lockDevice = async (
     }
 
     if (!(await checkConnection(formattedId))) {
-      lockQueue.add(formattedId, message)
+      queueService.lockQueue.add(formattedId, message)
       console.log(`Added ${id} to lock queue`)
       res.status(202).send()
       return
@@ -385,7 +385,7 @@ export const flashDevice = async (
     }
 
     if (!(await checkConnection(formattedId))) {
-      flashQueue.add(formattedId)
+      queueService.flashQueue.add(formattedId)
       console.log(`Added ${id} to flash queue`)
       res.status(202).send()
       return

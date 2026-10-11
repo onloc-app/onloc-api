@@ -5,8 +5,8 @@ import { authenticateIO } from "./middlewares/auth"
 import prisma from "./prisma"
 import { REGISTER_DEVICE, UNREGISTER_DEVICE } from "./types/Consts"
 import { NotificationService } from "./services/NotificationService"
-import { sendQueuedCommands } from "./helpers/queue"
 import chalk from "chalk"
+import { QueueService } from "./services/QueueService"
 
 let io: SocketIOServer | null = null
 
@@ -50,7 +50,7 @@ export function createIO(
       console.log(`Device ${chalk.blue(device_id)} joined room`)
 
       const formattedDeviceId = BigInt(device_id)
-      sendQueuedCommands(formattedDeviceId)
+      QueueService.getInstance().sendQueuedCommands(formattedDeviceId)
     })
 
     socket.on(UNREGISTER_DEVICE, async ({ device_id }) => {

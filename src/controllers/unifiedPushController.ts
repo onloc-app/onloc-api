@@ -4,7 +4,7 @@ import prisma from "../prisma"
 import { sanitizeData } from "../utils"
 import type { UnifiedPushProvider } from "../generated/prisma"
 import { NotificationService } from "../services/NotificationService"
-import { sendQueuedCommands } from "../helpers/queue"
+import { QueueService } from "../services/QueueService"
 
 export const register = async (
   req: AuthenticatedRequest,
@@ -60,7 +60,7 @@ export const register = async (
     })
 
     // Check queues and send commands
-    sendQueuedCommands(provider.device_id)
+    QueueService.getInstance().sendQueuedCommands(provider.device_id)
 
     // Tell WebSocket listeners that a new device is online
     await new NotificationService().emitConnectionChange(device)
