@@ -3,17 +3,10 @@ import { Server as SocketIOServer, type ServerOptions } from "socket.io"
 import type { User } from "./generated/prisma"
 import { authenticateIO } from "./middlewares/auth"
 import prisma from "./prisma"
-import { ringQueue } from "./services/ringQueue"
-import { lockQueue } from "./services/lockQueue"
-import { flashQueue } from "./services/flashQueue"
-import {
-  CONNECTIONS_CHANGE,
-  FLASH_COMMAND,
-  LOCK_COMMAND,
-  REGISTER_DEVICE,
-  RING_COMMAND,
-  UNREGISTER_DEVICE,
-} from "./types/Consts"
+import { REGISTER_DEVICE, UNREGISTER_DEVICE } from "./types/Consts"
+import { NotificationService } from "./services/NotificationService"
+import { sendQueuedCommands } from "./helpers/queue"
+import chalk from "chalk"
 
 let io: SocketIOServer | null = null
 
@@ -34,10 +27,10 @@ export function createIO(
       return
     }
 
-    console.log(`New client connected: ${socket.id}`)
+    console.log(`New client connected: ${chalk.blue(socket.id)}`)
 
     socket.join(`user-${user.id}`)
-    console.log(`User ${user.username} joined room`)
+    console.log(`User ${chalk.blue(user.username)} joined room`)
 
     socket.on(REGISTER_DEVICE, async ({ device_id }) => {
       if (!device_id) {
@@ -53,34 +46,11 @@ export function createIO(
       }
 
       socket.join(`device-${device_id}`)
-      io!.to(`user-${user.id}`).emit(CONNECTIONS_CHANGE)
-      console.log(`Device ${device_id} joined room`)
+      new NotificationService().emitConnectionChange(device)
+      console.log(`Device ${chalk.blue(device_id)} joined room`)
 
       const formattedDeviceId = BigInt(device_id)
-
-      // Ring the device if it's in the queue
-      if (ringQueue.has(formattedDeviceId)) {
-        io!.to(`device-${formattedDeviceId}`).emit(RING_COMMAND)
-        console.log(`Sent queued ring to ${formattedDeviceId}`)
-        ringQueue.remove(formattedDeviceId)
-      }
-
-      // Lock the device if it's in the queue
-      if (lockQueue.has(formattedDeviceId)) {
-        const message = lockQueue.getMessage(formattedDeviceId)
-        io!
-          .to(`device-${formattedDeviceId}`)
-          .emit(LOCK_COMMAND, { message: message })
-        console.log(`Sent queued lock to ${formattedDeviceId}`)
-        lockQueue.remove(formattedDeviceId)
-      }
-
-      // Flash the device if it's in the queue
-      if (flashQueue.has(formattedDeviceId)) {
-        io!.to(`device-${formattedDeviceId}`).emit(FLASH_COMMAND)
-        console.log(`Sent queued flash to ${formattedDeviceId}`)
-        flashQueue.remove(formattedDeviceId)
-      }
+      sendQueuedCommands(formattedDeviceId)
     })
 
     socket.on(UNREGISTER_DEVICE, async ({ device_id }) => {
@@ -94,8 +64,8 @@ export function createIO(
       if (!device) return socket.emit("error", "Device not found")
 
       socket.leave(`device-${device_id}`)
-      io!.to(`user-${user.id}`).emit(CONNECTIONS_CHANGE)
-      console.log(`Device ${device_id} left room`)
+      new NotificationService().emitConnectionChange(device)
+      console.log(`Device ${chalk.blue(device_id)} left room`)
     })
 
     socket.on("ring", async ({ device_id }) => {
@@ -112,11 +82,11 @@ export function createIO(
       }
 
       io!.to(`device-${device_id}`).emit("ring-command")
-      console.log(`Sent ring to device ${device_id}`)
+      console.log(`Sent ring to device ${chalk.blue(device_id)}`)
     })
 
     socket.on("disconnect", () => {
-      console.log(`Client disconnected: ${socket.id}`)
+      console.log(`Client disconnected: ${chalk.blue(socket.id)}`)
     })
   })
 

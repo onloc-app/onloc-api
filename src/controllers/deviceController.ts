@@ -7,7 +7,7 @@ import {
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
 import { getIO } from "../socket"
-import { sanitizeData, sendCommandToDeviceByPush } from "../utils"
+import { sanitizeData } from "../utils"
 import { ringQueue } from "../services/ringQueue"
 import { checkPermissions } from "./userTierController"
 import { lockQueue } from "../services/lockQueue"
@@ -18,7 +18,9 @@ import {
   hasRingAccessToDevice,
 } from "../helpers/access"
 import { flashQueue } from "../services/flashQueue"
-import { FLASH_COMMAND, LOCK_COMMAND, RING_COMMAND } from "../types/Consts"
+import { LockCommand } from "../commands/LockCommand"
+import { FlashCommand } from "../commands/FlashCommand"
+import { RingCommand } from "../commands/RingCommand"
 
 interface DeviceExtra extends Device {
   latest_location?: Location | null
@@ -282,10 +284,7 @@ export const ringDevice = async (
       return
     }
 
-    const io = getIO()
-    io.to(`device-${id}`).emit(RING_COMMAND)
-    sendCommandToDeviceByPush(formattedId, RING_COMMAND)
-    console.log(`Sent ring to ${id}`)
+    new RingCommand(device.id).excute()
 
     res.status(200).send()
   } catch (error) {
@@ -339,12 +338,7 @@ export const lockDevice = async (
       return
     }
 
-    const io = getIO()
-    io.to(`device-${id}`).emit(LOCK_COMMAND, { message: message })
-    sendCommandToDeviceByPush(BigInt(formattedId), LOCK_COMMAND, {
-      message: message,
-    })
-    console.log(`Sent lock to ${id}`)
+    new LockCommand(device.id, message).excute()
 
     res.status(200).send()
   } catch (error) {
@@ -397,10 +391,7 @@ export const flashDevice = async (
       return
     }
 
-    const io = getIO()
-    io.to(`device-${id}`).emit(FLASH_COMMAND)
-    sendCommandToDeviceByPush(formattedId, FLASH_COMMAND)
-    console.log(`Sent flash to ${id}`)
+    new FlashCommand(device.id).excute()
 
     res.status(200).send()
   } catch (error) {
