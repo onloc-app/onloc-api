@@ -10,6 +10,11 @@ import { QueueService } from "./services/QueueService"
 
 let io: SocketIOServer | null = null
 
+export function getIO() {
+  if (!io) throw new Error("Socket.io not initialized")
+  return io
+}
+
 export function createIO(
   server: HTTPServer,
   options: Partial<ServerOptions> = {},
@@ -73,10 +78,5 @@ export function createIO(
     })
   })
 
-  return io
-}
-
-export function getIO() {
-  if (!io) throw new Error("Socket.io not initialized")
   return io
 }
