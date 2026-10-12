@@ -68,23 +68,6 @@ export function createIO(
       console.log(`Device ${chalk.blue(device_id)} left room`)
     })
 
-    socket.on("ring", async ({ device_id }) => {
-      if (!device_id) {
-        console.error("Event: ring, called without device_id")
-        return
-      }
-      const device = await prisma.device.findUnique({
-        where: { id: device_id },
-      })
-      if (!device) return socket.emit("error", "Device not found")
-      if (device.user_id !== user.id) {
-        return socket.emit("error", "You do not own this device")
-      }
-
-      io!.to(`device-${device_id}`).emit("ring-command")
-      console.log(`Sent ring to device ${chalk.blue(device_id)}`)
-    })
-
     socket.on("disconnect", () => {
       console.log(`Client disconnected: ${chalk.blue(socket.id)}`)
     })
