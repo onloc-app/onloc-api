@@ -55,8 +55,8 @@ router.get("/dates", availableDates)
  * @openapi
  * /api/locations:
  *   post:
- *     summary: Create a new location
- *     description: Create a new location entry for a device. The authenticated user must own the device.
+ *     summary: Create new locations
+ *     description: Create one or more location entries for devices owned by the authenticated user.
  *     tags: [Locations]
  *     security:
  *       - bearerAuth: []
@@ -65,17 +65,26 @@ router.get("/dates", availableDates)
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/LocationCreate"
+ *             type: object
+ *             required:
+ *               - locations
+ *             properties:
+ *               locations:
+ *                 type: array
+ *                 items:
+ *                   $ref: "#/components/schemas/LocationCreate"
  *     responses:
  *       201:
- *         description: Location created
+ *         description: Locations created
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 location:
- *                   $ref: "#/components/schemas/LocationSafe"
+ *                 locations:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/LocationSafe"
  *       400:
  *         $ref: "#/components/responses/BadRequest"
  *       403:
