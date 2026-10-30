@@ -41,6 +41,64 @@ export const createLocation = async (
 ): Promise<void> => {
   try {
     const user = req.user!
+    const location: Location = req.body
+
+    const device = await prisma.device.findFirst({
+      where: {
+        id: location.device_id,
+      },
+    })
+
+    if (!device) {
+      res.status(404).json({ message: "Device not found" })
+      return
+    }
+
+    if (device?.user_id !== user.id) {
+      res.status(403).json({ message: "Forbidden" })
+      return
+    }
+
+    const newLocation = await prisma.location.create({
+      data: {
+        device_id: location.device_id,
+        accuracy: location.accuracy,
+        altitude: location.altitude,
+        altitude_accuracy: location.altitude_accuracy,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        bearing: location.bearing,
+        bearing_accuracy_degrees: location.bearing_accuracy_degrees,
+        speed: location.speed,
+        speed_accuracy: location.speed_accuracy,
+        provider: location.provider,
+        battery:
+          location.battery != null &&
+          location.battery >= 0 &&
+          location.battery <= 100
+            ? location.battery
+            : undefined,
+        charging: location.charging,
+        created_at: location.created_at ?? new Date(),
+        updated_at: new Date(),
+      },
+    })
+
+    emitAction(user.id, "create", [sanitizeData(newLocation)])
+
+    res.status(201).json({ location: sanitizeData(newLocation) })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Could not create location" })
+  }
+}
+
+export const createLocations = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const user = req.user!
     const locations: Location[] = req.body.locations ?? []
 
     if (!Array.isArray(locations) || locations.length <= 0) {
@@ -299,7 +357,8 @@ export const availableDates = async (
 
     const formattedDeviceId = BigInt(device_id as string)
 
-    if (!hasReadAccessToDevice(formattedDeviceId, user.id)) {
+    const hasAccess = await hasReadAccessToDevice(formattedDeviceId, user.id)
+    if (!hasAccess) {
       res.status(403).json({ message: "Forbidden" })
       return
     }

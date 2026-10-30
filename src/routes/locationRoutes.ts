@@ -3,6 +3,7 @@ import { authenticate } from "../middlewares/auth"
 import {
   availableDates,
   createLocation,
+  createLocations,
   deleteLocation,
   deleteLocations,
   readLocation,
@@ -55,7 +56,41 @@ router.get("/dates", availableDates)
  * @openapi
  * /api/locations:
  *   post:
- *     summary: Create new locations
+ *     summary: Create a new location
+ *     description: Create a single location entry for a device owned by the authenticated user.
+ *     tags: [Locations]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/LocationCreate"
+ *     responses:
+ *       201:
+ *         description: Location created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 location:
+ *                   $ref: "#/components/schemas/LocationSafe"
+ *       403:
+ *         $ref: "#/components/responses/Forbidden"
+ *       404:
+ *         $ref: "#/components/responses/NotFound"
+ *       500:
+ *         $ref: "#/components/responses/InternalError"
+ */
+router.post("/", createLocation)
+
+/**
+ * @openapi
+ * /api/locations/batch:
+ *   post:
+ *     summary: Create multiple locations in batch
  *     description: Create one or more location entries for devices owned by the authenticated user.
  *     tags: [Locations]
  *     security:
@@ -94,7 +129,7 @@ router.get("/dates", availableDates)
  *       500:
  *         $ref: "#/components/responses/InternalError"
  */
-router.post("/", createLocation)
+router.post("/batch", createLocations)
 
 /**
  * @openapi
