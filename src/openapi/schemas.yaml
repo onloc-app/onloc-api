@@ -668,6 +668,79 @@ components:
           items:
             $ref: "#/components/schemas/UserTier"
 
+    UnifiedPushProviderSafe:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        device_id:
+          type: string
+          nullable: true
+        endpoint_url:
+          type: string
+        pub_key:
+          type: string
+          nullable: true
+        auth:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - endpoint_url
+        - created_at
+        - updated_at
+
+    UnifiedPushRegister:
+      type: object
+      description: Payload to register or update a UnifiedPush provider
+      required:
+        - endpoint_url
+      properties:
+        device_id:
+          type: string
+          nullable: true
+          description: Optional device ID to associate with this provider
+          example: "123"
+        endpoint_url:
+          type: string
+          description: UnifiedPush endpoint URL
+          example: "https://ntfy.sh/up123456"
+        pub_key:
+          type: string
+          nullable: true
+          description: WebPush public key (P-256)
+        auth:
+          type: string
+          nullable: true
+          description: WebPush authentication secret
+      example:
+        device_id: "123"
+        endpoint_url: "https://ntfy.sh/up123456"
+        pub_key: "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM="
+        auth: "tBHItJI5svbpez7KI4CCXg=="
+
+    UnifiedPushUnregister:
+      type: object
+      description: Payload to unregister a UnifiedPush provider
+      required:
+        - endpoint_url
+      properties:
+        endpoint_url:
+          type: string
+          description: UnifiedPush endpoint URL to unregister
+          example: "https://ntfy.sh/up123456"
+      example:
+        endpoint_url: "https://ntfy.sh/up123456"
+
   responses:
     Unauthorized:
       description: Access token missing or invalid
