@@ -9,11 +9,11 @@ export async function scheduleCleanupPushProviders() {
 
       const results = await Promise.all(
         providers.map(async (provider) => {
-          sendCommandByPush(provider, "ping")
+          return sendCommandByPush(provider, "ping")
         }),
       )
 
-      const removed = results.filter(Boolean).length
+      const removed = results.filter((r) => r === false).length
       if (removed > 0) {
         console.log(
           `[cleanupPushProviders] removed ${removed} dead push provider(s)`,

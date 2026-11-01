@@ -19,24 +19,22 @@ export const register = async (
       return
     }
 
-    const device = await prisma.device.findFirst({
-      where: {
-        id: rawProvider.device_id,
-        user_id: user.id,
-      },
-    })
-
-    if (!device) {
-      res.status(404).json({ message: "Device not found" })
-      return
-    }
-
     const existingProvider = await prisma.unifiedPushProvider.findUnique({
       where: { endpoint_url: rawProvider.endpoint_url },
-      include: { device: true },
     })
 
-    if (existingProvider && existingProvider.device.user_id !== user.id) {
+    const targetDeviceId = rawProvider.device_id ?? existingProvider?.device_id
+
+    const device = targetDeviceId
+      ? await prisma.device.findUnique({
+          where: { id: targetDeviceId },
+        })
+      : null
+
+    if (
+      (existingProvider && existingProvider.user_id !== user.id) ||
+      (device && device.user_id !== user.id)
+    ) {
       res.status(403).json({ message: "Unauthorized" })
       return
     }
@@ -44,26 +42,30 @@ export const register = async (
     const provider = await prisma.unifiedPushProvider.upsert({
       where: { endpoint_url: rawProvider.endpoint_url },
       update: {
-        device_id: rawProvider.device_id,
-        pub_key: rawProvider.pub_key,
-        auth: rawProvider.auth,
+        user_id: user.id,
+        device_id: device?.id,
+        pub_key: rawProvider.pub_key ?? existingProvider?.pub_key,
+        auth: rawProvider.auth ?? existingProvider?.auth,
         updated_at: new Date(),
       },
       create: {
-        device_id: rawProvider.device_id,
+        user_id: user.id,
+        device_id: device?.id,
         endpoint_url: rawProvider.endpoint_url,
-        pub_key: rawProvider.pub_key,
-        auth: rawProvider.auth,
+        pub_key: rawProvider.pub_key ?? existingProvider?.pub_key,
+        auth: rawProvider.auth ?? existingProvider?.auth,
         created_at: new Date(),
         updated_at: new Date(),
       },
     })
 
-    // Check queues and send commands
-    QueueService.getInstance().sendQueuedCommands(provider.device_id)
+    if (device) {
+      // Check queues and send commands
+      QueueService.getInstance().sendQueuedCommands(device.id)
 
-    // Tell WebSocket listeners that a new device is online
-    await new NotificationService().emitConnectionChange(device)
+      // Tell WebSocket listeners that a new device is online
+      await new NotificationService().emitConnectionChange(device)
+    }
 
     res.status(201).json({ unified_push_provider: sanitizeData(provider) })
   } catch (error) {
@@ -99,23 +101,18 @@ export const unregister = async (
       return
     }
 
-    if (provider.device.user_id !== user.id) {
+    if (provider.user_id !== user.id) {
       res.status(403).json({ message: "Unauthorized" })
       return
     }
 
     await prisma.unifiedPushProvider.deleteMany({
-      where: {
-        endpoint_url: endpointUrl,
-        device: {
-          user_id: user.id,
-        },
-      },
+      where: { endpoint_url: endpointUrl },
     })
 
     // Tell WebSocket listeners that a device went offline
     const device = provider.device
-    await new NotificationService().emitConnectionChange(device)
+    if (device) await new NotificationService().emitConnectionChange(device)
 
     res.status(204).send()
   } catch (error) {

@@ -27,9 +27,9 @@ export async function sendCommandByPush(
         await prisma.unifiedPushProvider.deleteMany({
           where: { id: provider.id },
         })
-        return true
+        return false
       }
-      return false
+      return true
     } else {
       await webpush.sendNotification(
         {
@@ -38,7 +38,7 @@ export async function sendCommandByPush(
         },
         payload,
       )
-      return false
+      return true
     }
   } catch (error) {
     if (error instanceof WebPushError) {
@@ -46,19 +46,34 @@ export async function sendCommandByPush(
         await prisma.unifiedPushProvider.deleteMany({
           where: { id: provider.id },
         })
-        return true
+        return false
       }
       console.error(error)
     }
-    return false
+    return true
   }
+}
+
+export async function sendCommandToUserByPush(
+  userId: bigint,
+  command: string,
+  args?: Record<string, unknown>,
+): Promise<void> {
+  const providers = await prisma.unifiedPushProvider.findMany({
+    where: { user_id: userId },
+  })
+  await Promise.all(
+    providers.map((provider) => {
+      sendCommandByPush(provider, command, args)
+    }),
+  )
 }
 
 export async function sendCommandToDeviceByPush(
   deviceId: bigint,
   command: string,
   args?: Record<string, unknown>,
-) {
+): Promise<void> {
   const providers = await prisma.unifiedPushProvider.findMany({
     where: { device_id: deviceId },
   })

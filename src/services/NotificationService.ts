@@ -1,4 +1,5 @@
 import type { Device } from "../generated/prisma"
+import { sendCommandToUserByPush } from "../helpers/push"
 import prisma from "../prisma"
 import { getIO } from "../socket"
 import { CONNECTIONS_CHANGE } from "../types/Consts"
@@ -21,6 +22,7 @@ export class NotificationService {
 
     for (const userId of userIds) {
       this.io.to(`user-${userId}`).emit(CONNECTIONS_CHANGE)
+      sendCommandToUserByPush(userId, CONNECTIONS_CHANGE)
     }
   }
 }
