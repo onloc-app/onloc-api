@@ -21,6 +21,7 @@ export function createIO(
 ) {
   if (io) return io
   io = new SocketIOServer(server, options)
+  const notificationService = new NotificationService()
 
   io.use(authenticateIO)
 
@@ -32,10 +33,9 @@ export function createIO(
       return
     }
 
-    console.log(`New client connected: ${chalk.blue(socket.id)}`)
-
+    notificationService.emitUserWatching(user, true)
     socket.join(`user-${user.id}`)
-    console.log(`User ${chalk.blue(user.username)} joined room`)
+    console.log(`New client connected: ${chalk.blue(socket.id)}`)
 
     socket.on(REGISTER_DEVICE, async ({ device_id }) => {
       if (!device_id) {
@@ -51,7 +51,7 @@ export function createIO(
       }
 
       socket.join(`device-${device_id}`)
-      new NotificationService().emitConnectionChange(device)
+      notificationService.emitConnectionChange(device)
       console.log(`Device ${chalk.blue(device_id)} joined room`)
 
       const formattedDeviceId = BigInt(device_id)
@@ -69,11 +69,12 @@ export function createIO(
       if (!device) return socket.emit("error", "Device not found")
 
       socket.leave(`device-${device_id}`)
-      new NotificationService().emitConnectionChange(device)
+      notificationService.emitConnectionChange(device)
       console.log(`Device ${chalk.blue(device_id)} left room`)
     })
 
     socket.on("disconnect", () => {
+      notificationService.emitUserWatching(user, false)
       console.log(`Client disconnected: ${chalk.blue(socket.id)}`)
     })
   })
