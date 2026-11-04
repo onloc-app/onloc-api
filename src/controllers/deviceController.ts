@@ -460,10 +460,5 @@ export const readSharedDevices = async (
 export const checkConnection = async (id: bigint): Promise<boolean> => {
   const roomName = `device-${id}`
   const socketsInRoom = await getIO().in(roomName).fetchSockets()
-  if (socketsInRoom.length > 0) return true
-
-  const providerCount = await prisma.unifiedPushProvider.count({
-    where: { device_id: id },
-  })
-  return providerCount > 0
+  return socketsInRoom.length > 0
 }

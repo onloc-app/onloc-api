@@ -27,7 +27,6 @@ import userRoutes from "./routes/userRoutes"
 import userTierRoutes from "./routes/userTierRoutes"
 import { createIO } from "./socket"
 import prisma from "./prisma"
-import { scheduleCleanupPushProviders } from "./jobs/cleanupPushProviders"
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -161,6 +160,3 @@ server.listen(PORT, () => {
     port: Number(PORT),
   })
 })
-
-// Launch cron jobs
-scheduleCleanupPushProviders()
