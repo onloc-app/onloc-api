@@ -7,8 +7,6 @@ import { hasReadAccessToDevice } from "../helpers/access"
 import ApiError from "../types/ApiError"
 import { NotificationService } from "../services/NotificationService"
 
-const ns = new NotificationService()
-
 export const createLocation = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -58,6 +56,7 @@ export const createLocation = async (
       },
     })
 
+    const ns = new NotificationService()
     ns.emitLocationsChange("create", [sanitizeData(newLocation)])
 
     res.status(201).json({ location: sanitizeData(newLocation) })
@@ -126,6 +125,7 @@ export const createLocations = async (
 
     const sanitized = newLocations.map(sanitizeData)
 
+    const ns = new NotificationService()
     ns.emitLocationsChange("create", sanitized)
     res.status(201).json({ locations: sanitized })
   } catch (error) {
@@ -236,6 +236,7 @@ export const updateLocation = async (
       },
     })
 
+    const ns = new NotificationService()
     ns.emitLocationsChange("update", [sanitizeData(updatedLocation)])
 
     res.status(200).json({ location: sanitizeData(updatedLocation) })
@@ -270,6 +271,7 @@ export const deleteLocation = async (
       return
     }
 
+    const ns = new NotificationService()
     ns.emitLocationsChange("delete", [sanitizeData(deletedLocation)])
 
     res.status(204).send()
@@ -307,6 +309,7 @@ export const deleteLocations = async (
       },
     })
 
+    const ns = new NotificationService()
     ns.emitLocationsChange("delete", [sanitizeData(deletedLocations)])
 
     res.status(204).send()

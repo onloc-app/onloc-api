@@ -33,9 +33,11 @@ export function createIO(
       return
     }
 
-    notificationService.emitUserWatching(user, true)
     socket.join(`user-${user.id}`)
-    console.log(`New client connected: ${chalk.blue(socket.id)}`)
+    notificationService.emitUserWatching(user, true)
+    console.log(
+      `New client (user: ${user.id}) connected: ${chalk.blue(socket.id)}`,
+    )
 
     socket.on(REGISTER_DEVICE, async ({ device_id }) => {
       if (!device_id) {
