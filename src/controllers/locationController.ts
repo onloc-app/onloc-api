@@ -2,38 +2,12 @@ import type { Response } from "express"
 import { type Location } from "../generated/prisma"
 import type { AuthenticatedRequest } from "../middlewares/auth"
 import prisma from "../prisma"
-import { getIO } from "../socket"
-import type { CrudAction } from "../types"
 import { sanitizeData } from "../utils"
 import { hasReadAccessToDevice } from "../helpers/access"
 import ApiError from "../types/ApiError"
+import { NotificationService } from "../services/NotificationService"
 
-async function emitAction(
-  userId: bigint,
-  action: CrudAction,
-  locations: Location[],
-): Promise<void> {
-  const io = getIO()
-
-  const data = {
-    action: action,
-    locations: locations,
-  }
-
-  for (const location of locations) {
-    const deviceShares = await prisma.deviceShare.findMany({
-      where: {
-        device_id: location.device_id,
-      },
-    })
-    deviceShares.forEach((deviceShare) => {
-      io.to(`user-${deviceShare.user_id}`).emit("locations-change", data)
-    })
-  }
-
-  io.to(`user-${userId.toString()}`).emit("locations-change", data)
-  io.to(`admin`).emit("admin-locations-change", data)
-}
+const ns = new NotificationService()
 
 export const createLocation = async (
   req: AuthenticatedRequest,
@@ -84,7 +58,7 @@ export const createLocation = async (
       },
     })
 
-    emitAction(user.id, "create", [sanitizeData(newLocation)])
+    ns.emitLocationsChange("create", [sanitizeData(newLocation)])
 
     res.status(201).json({ location: sanitizeData(newLocation) })
   } catch (error) {
@@ -152,7 +126,7 @@ export const createLocations = async (
 
     const sanitized = newLocations.map(sanitizeData)
 
-    emitAction(user.id, "create", sanitized)
+    ns.emitLocationsChange("create", sanitized)
     res.status(201).json({ locations: sanitized })
   } catch (error) {
     console.error(error)
@@ -262,7 +236,7 @@ export const updateLocation = async (
       },
     })
 
-    emitAction(user.id, "update", [sanitizeData(updatedLocation)])
+    ns.emitLocationsChange("update", [sanitizeData(updatedLocation)])
 
     res.status(200).json({ location: sanitizeData(updatedLocation) })
   } catch (error) {
@@ -296,7 +270,7 @@ export const deleteLocation = async (
       return
     }
 
-    emitAction(user.id, "delete", [sanitizeData(deletedLocation)])
+    ns.emitLocationsChange("delete", [sanitizeData(deletedLocation)])
 
     res.status(204).send()
   } catch (error) {
@@ -333,7 +307,7 @@ export const deleteLocations = async (
       },
     })
 
-    emitAction(formattedUserId, "delete", [sanitizeData(deletedLocations)])
+    ns.emitLocationsChange("delete", [sanitizeData(deletedLocations)])
 
     res.status(204).send()
   } catch (error) {
