@@ -12,7 +12,7 @@ export class LockCommand extends Command {
     this.message = message
   }
 
-  excute(): void {
+  execute(): void {
     this.io
       .to(`device-${this.deviceId}`)
       .emit(LOCK_COMMAND, { message: this.message })

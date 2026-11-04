@@ -10,7 +10,7 @@ export class RingCommand extends Command {
     this.deviceId = deviceId
   }
 
-  excute(): void {
+  execute(): void {
     this.io.to(`device-${this.deviceId}`).emit(RING_COMMAND)
     sendCommandToDeviceByPush(this.deviceId, RING_COMMAND)
   }

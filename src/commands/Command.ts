@@ -7,5 +7,5 @@ export abstract class Command {
     this.io = getIO()
   }
 
-  excute(): void {}
+  execute(): void {}
 }

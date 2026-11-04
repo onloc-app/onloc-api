@@ -80,7 +80,7 @@ export class QueueService {
     if (this.ringQueue.has(deviceId)) {
       this.ringQueue.remove(deviceId)
 
-      new RingCommand(deviceId).excute()
+      new RingCommand(deviceId).execute()
 
       console.log(`Sent queued ring to ${deviceId}`)
     }
@@ -88,14 +88,14 @@ export class QueueService {
       this.lockQueue.remove(deviceId)
 
       const message = this.lockQueue.getMessage(deviceId)
-      new LockCommand(deviceId, message).excute()
+      new LockCommand(deviceId, message).execute()
 
       console.log(`Sent queued lock to ${deviceId}`)
     }
     if (this.flashQueue.has(deviceId)) {
       this.flashQueue.remove(deviceId)
 
-      new FlashCommand(deviceId).excute()
+      new FlashCommand(deviceId).execute()
 
       console.log(`Sent queued flash to ${deviceId}`)
     }

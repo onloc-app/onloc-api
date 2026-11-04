@@ -196,7 +196,15 @@ export const updateDevice = async (
         user_id: user.id,
       },
       data: {
-        ...device,
+        id: existingDevice.id,
+        user_id: existingDevice.user_id,
+        name: device.name,
+        color: device.color,
+        icon: device.icon,
+        can_ring: device.can_ring,
+        can_lock: device.can_lock,
+        can_flash: device.can_flash,
+        created_at: existingDevice.created_at,
         updated_at: new Date(),
       },
     })
@@ -240,6 +248,13 @@ export const deleteDevice = async (
   }
 }
 
+async function shouldQueueCommand(deviceId: bigint) {
+  const pushProviders = await prisma.unifiedPushProvider.findFirst({
+    where: { device_id: deviceId },
+  })
+  return !(await checkConnection(deviceId)) && !pushProviders
+}
+
 export const ringDevice = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -277,14 +292,14 @@ export const ringDevice = async (
       return
     }
 
-    if (!(await checkConnection(formattedId))) {
+    if (await shouldQueueCommand(formattedId)) {
       queueService.ringQueue.add(formattedId)
       console.log(`Added ${id} to ring queue`)
       res.status(202).send()
       return
     }
 
-    new RingCommand(device.id).excute()
+    new RingCommand(device.id).execute()
 
     res.status(200).send()
   } catch (error) {
@@ -331,14 +346,14 @@ export const lockDevice = async (
       return
     }
 
-    if (!(await checkConnection(formattedId))) {
+    if (await shouldQueueCommand(formattedId)) {
       queueService.lockQueue.add(formattedId, message)
       console.log(`Added ${id} to lock queue`)
       res.status(202).send()
       return
     }
 
-    new LockCommand(device.id, message).excute()
+    new LockCommand(device.id, message).execute()
 
     res.status(200).send()
   } catch (error) {
@@ -384,14 +399,14 @@ export const flashDevice = async (
       return
     }
 
-    if (!(await checkConnection(formattedId))) {
+    if (await shouldQueueCommand(formattedId)) {
       queueService.flashQueue.add(formattedId)
       console.log(`Added ${id} to flash queue`)
       res.status(202).send()
       return
     }
 
-    new FlashCommand(device.id).excute()
+    new FlashCommand(device.id).execute()
 
     res.status(200).send()
   } catch (error) {
@@ -410,6 +425,7 @@ export const readSharedDevices = async (
     const connections = await prisma.connection.findMany({
       where: {
         OR: [{ requester_id: user.id }, { addressee_id: user.id }],
+        status: "ACCEPTED",
       },
       include: {
         deviceShares: {

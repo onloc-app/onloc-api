@@ -10,7 +10,7 @@ export class FlashCommand extends Command {
     this.deviceId = deviceId
   }
 
-  excute(): void {
+  execute(): void {
     this.io.to(`device-${this.deviceId}`).emit(FLASH_COMMAND)
     sendCommandToDeviceByPush(this.deviceId, FLASH_COMMAND)
   }

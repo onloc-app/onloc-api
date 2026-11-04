@@ -33,6 +33,7 @@ export const sendConnectionRequest = async (
           },
         })
         res.status(200).json({ connection: sanitizeData(updatedConnection) })
+        return
       }
       res.status(400).json({ message: "Connection already exists" })
       return
