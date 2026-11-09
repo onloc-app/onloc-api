@@ -11,7 +11,11 @@ import { AuthenticationModule } from "@nestjs/authentication"
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    AuthenticationModule.forRoot(),
+    AuthenticationModule.forRoot({
+      accessToken: {
+        key: process.env.ACCESS_TOKEN_SECRET || "onloc-access-token-secret",
+      },
+    }),
     TerminusModule,
     AuthModule,
     UserModule,
