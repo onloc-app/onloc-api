@@ -29,5 +29,5 @@
 
     "types": ["bun", "node"]
   },
-  "include": ["src/**/*", "prisma.config.ts"],
+  "include": ["src/**/*", "prisma.config.ts"]
 }
