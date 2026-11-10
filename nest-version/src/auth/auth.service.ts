@@ -4,7 +4,7 @@ import {
   Injectable,
 } from "@nestjs/common"
 import { PrismaService } from "../prisma/prisma.service.js"
-import { PasswordHasher } from "@nestjs/authentication"
+import { PasswordHasher, TokenService } from "@nestjs/authentication"
 import { AppService } from "../app.service.js"
 import { UserDto } from "../user/dtos/user.dto.js"
 import bcrypt from "bcryptjs"
@@ -15,9 +15,10 @@ export class AuthService {
     private readonly appService: AppService,
     private readonly prisma: PrismaService,
     private readonly passwordHasher: PasswordHasher,
+    private readonly tokenService: TokenService,
   ) {}
 
-  async verify(username: string, password: string): Promise<UserDto | null> {
+  async login(username: string, password: string): Promise<UserDto | null> {
     const found = await this.prisma.user.findUnique({
       where: { username: username },
     })
@@ -108,5 +109,42 @@ export class AuthService {
     }
 
     return dto
+  }
+
+  async refresh(refreshToken: string): Promise<string> {
+    const tokenRecord = await this.prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    })
+
+    if (!tokenRecord) {
+      throw new ForbiddenException("Invalid refresh token")
+    }
+
+    try {
+      const { accessToken } = await this.tokenService.issue(
+        tokenRecord.user_id.toString(),
+        { method: "refresh" },
+      )
+      return accessToken
+    } catch {
+      throw new ForbiddenException("Invalid refresh token")
+    }
+  }
+
+  async storeRefreshToken(userId: bigint, refreshToken: string, agent: string) {
+    await this.prisma.refreshToken.upsert({
+      where: { token: refreshToken },
+      update: {
+        agent: agent,
+        updated_at: new Date(),
+      },
+      create: {
+        token: refreshToken,
+        user_id: userId,
+        agent: agent,
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+    })
   }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Headers,
   HttpCode,
   HttpStatus,
   Post,
@@ -12,6 +13,8 @@ import { LoginRequestDto } from "./dtos/login-request.dto.js"
 import { RegisterResponseDto } from "./dtos/register-response.dto.js"
 import { Public, TokenService } from "@nestjs/authentication"
 import { RegisterRequestDto } from "./dtos/register-request.dto.js"
+import { RefreshRequestDto } from "./dtos/refresh-request.dto.js"
+import { RefreshResponseDto } from "./dtos/refresh-response.dto.js"
 
 @Controller("auth")
 export class AuthController {
@@ -23,15 +26,22 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post("login")
-  async login(@Body() body: LoginRequestDto): Promise<LoginResponseDto> {
-    const user = await this.authService.verify(body.username, body.password)
+  async login(
+    @Headers("user-agent") agent: string,
+    @Body() body: LoginRequestDto,
+  ): Promise<LoginResponseDto> {
+    const user = await this.authService.login(body.username, body.password)
     if (!user) {
       throw new UnauthorizedException("Invalid username or password")
     }
+
     const { accessToken, refreshToken } = await this.tokenService.issue(
       user.id.toString(),
       { method: "password" },
     )
+
+    this.authService.storeRefreshToken(BigInt(user.id), refreshToken, agent)
+
     return {
       user: user,
       access_token: accessToken,
@@ -42,17 +52,31 @@ export class AuthController {
   @Public()
   @Post("register")
   async register(
+    @Headers("user-agent") agent: string,
     @Body() body: RegisterRequestDto,
   ): Promise<RegisterResponseDto> {
     const user = await this.authService.register(body.username, body.password)
+
     const { accessToken, refreshToken } = await this.tokenService.issue(
       user.id.toString(),
       { method: "password" },
     )
+
+    this.authService.storeRefreshToken(BigInt(user.id), refreshToken, agent)
+
     return {
       user: user,
       access_token: accessToken,
       refresh_token: refreshToken,
+    }
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post("refresh")
+  async refresh(@Body() body: RefreshRequestDto): Promise<RefreshResponseDto> {
+    return {
+      access_token: await this.authService.refresh(body.refresh_token),
     }
   }
 }

@@ -1,18 +1,85 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AvatarController } from './avatar.controller.js';
+import { Test, TestingModule } from "@nestjs/testing"
+import { AvatarController } from "./avatar.controller.js"
+import { AvatarService } from "./avatar.service.js"
+import type { User } from "@prisma/client"
+import { Readable } from "stream"
 
-describe('AvatarController', () => {
-  let controller: AvatarController;
+describe("AvatarController", () => {
+  let controller: AvatarController
+  let service: AvatarService
+
+  const mockAvatarService = {
+    store: vi.fn(),
+    remove: vi.fn(),
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AvatarController],
-    }).compile();
+      providers: [
+        {
+          provide: AvatarService,
+          useValue: mockAvatarService,
+        },
+      ],
+    }).compile()
 
-    controller = module.get<AvatarController>(AvatarController);
-  });
+    controller = module.get<AvatarController>(AvatarController)
+    service = module.get<AvatarService>(AvatarService)
+  })
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+  it("should be defined", () => {
+    expect(controller).toBeDefined()
+  })
+
+  describe("upsert", () => {
+    it("should store and return avatar", async () => {
+      const mockUser: User = {
+        id: 1n,
+        username: "test",
+        password: "password",
+        admin: false,
+        created_at: new Date(),
+        updated_at: new Date(),
+      }
+      const mockFile = {
+        fieldname: "avatar",
+        originalname: "test.png",
+        encoding: "7bit",
+        mimetype: "image/png",
+        size: 1024,
+        destination: "",
+        filename: "test.png",
+        path: "",
+        buffer: Buffer.from(""),
+        stream: new Readable(),
+      } as unknown as Express.Multer.File
+      const mockAvatarDto = { id: 1n, url: "uploads/avatars/1.png" }
+
+      mockAvatarService.store.mockResolvedValue(mockAvatarDto)
+
+      const result = await controller.upsert(mockUser, mockFile)
+
+      expect(service.store).toHaveBeenCalledWith(mockUser, mockFile)
+      expect(result).toEqual(mockAvatarDto)
+    })
+  })
+
+  describe("remove", () => {
+    it("should remove avatar", async () => {
+      const mockUser: User = {
+        id: 1n,
+        username: "test",
+        password: "password",
+        admin: false,
+        created_at: new Date(),
+        updated_at: new Date(),
+      }
+      mockAvatarService.remove.mockResolvedValue(undefined)
+
+      await controller.remove(mockUser)
+
+      expect(service.remove).toHaveBeenCalledWith(mockUser)
+    })
+  })
+})
