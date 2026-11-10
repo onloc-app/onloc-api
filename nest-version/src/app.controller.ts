@@ -6,7 +6,7 @@ import {
 } from "@nestjs/terminus"
 import { AppService } from "./app.service.js"
 import { PrismaService } from "./prisma/prisma.service.js"
-import { StatusResponseDto } from "./dto/status-response.dto.js"
+import { StatusResponseDto } from "./dtos/status-response.dto.js"
 import { Public } from "@nestjs/authentication"
 
 @Controller()

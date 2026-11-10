@@ -6,7 +6,7 @@ import {
 import { PrismaService } from "../prisma/prisma.service.js"
 import { PasswordHasher } from "@nestjs/authentication"
 import { AppService } from "../app.service.js"
-import { UserDto } from "../user/dto/user.dto.js"
+import { UserDto } from "../user/dtos/user.dto.js"
 import bcrypt from "bcryptjs"
 
 @Injectable()

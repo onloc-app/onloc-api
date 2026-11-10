@@ -1,4 +1,4 @@
-import { UserDto } from "../../user/dto/user.dto"
+import { UserDto } from "../../user/dtos/user.dto"
 
 export class RegisterResponseDto {
   user: UserDto

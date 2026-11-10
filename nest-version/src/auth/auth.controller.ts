@@ -2,15 +2,16 @@ import {
   Body,
   Controller,
   HttpCode,
+  HttpStatus,
   Post,
   UnauthorizedException,
 } from "@nestjs/common"
 import { AuthService } from "./auth.service.js"
-import { LoginResponseDto } from "./dto/login-response.dto.js"
-import { LoginRequestDto } from "./dto/login-request.dto.js"
-import { RegisterResponseDto } from "./dto/register-response.dto.js"
+import { LoginResponseDto } from "./dtos/login-response.dto.js"
+import { LoginRequestDto } from "./dtos/login-request.dto.js"
+import { RegisterResponseDto } from "./dtos/register-response.dto.js"
 import { Public, TokenService } from "@nestjs/authentication"
-import { RegisterRequestDto } from "./dto/register-request.dto.js"
+import { RegisterRequestDto } from "./dtos/register-request.dto.js"
 
 @Controller("auth")
 export class AuthController {
@@ -20,7 +21,7 @@ export class AuthController {
   ) {}
 
   @Public()
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @Post("login")
   async login(@Body() body: LoginRequestDto): Promise<LoginResponseDto> {
     const user = await this.authService.verify(body.username, body.password)
