@@ -66,7 +66,7 @@ export class UserService {
       include: { avatar: true },
     })
     if (!user) {
-      throw new NotFoundException()
+      throw new NotFoundException("User not found")
     }
     return user
   }

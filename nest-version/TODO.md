@@ -4,14 +4,15 @@
 - [x] Avatars
 - [x] Users
   - Note: `GET /users/info` no longer includes tier (UI will fetch tier separately)
+  - Note: `GET /users` no longer fetches extra info for admins, user `GET /users/admin`
 - [ ] API Keys
 - [ ] Connections
 - [ ] Devices
 - [ ] Device Shares
 - [ ] Locations
-- [ ] Preferences
-- [ ] Settings
+- [x] Preferences
+- [x] Settings
 - [x] Tiers
 - [ ] Tokens
 - [ ] Unified Push
-- [ ] User Tiers
+- [x] User Tiers

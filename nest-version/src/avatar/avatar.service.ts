@@ -48,7 +48,7 @@ export class AvatarService {
     const avatar = await this.prisma.avatar.findUnique({
       where: { user_id: user.id },
     })
-    if (!avatar) throw new NotFoundException()
+    if (!avatar) throw new NotFoundException("Avatar not found")
 
     await this.prisma.avatar.delete({
       where: { id: avatar.id },

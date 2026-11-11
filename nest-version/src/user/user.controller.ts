@@ -56,7 +56,7 @@ export class UserController {
 
   @Get(":id")
   async findOne(@IdParam() id: bigint): Promise<GetUserResponseDto> {
-    const user = await this.userService.findOne(BigInt(id))
+    const user = await this.userService.findOne(id)
     return {
       user: UserWithAvatarDto.from(user),
     }
@@ -79,10 +79,9 @@ export class UserController {
     @CurrentUser() user: User,
     @IdParam() id: bigint,
   ): Promise<void> {
-    const formattedId = BigInt(id)
-    if (formattedId !== user.id && !user.admin) {
+    if (id !== user.id && !user.admin) {
       throw new ForbiddenException()
     }
-    await this.userService.remove(formattedId)
+    await this.userService.remove(id)
   }
 }

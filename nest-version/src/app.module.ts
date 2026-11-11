@@ -8,7 +8,10 @@ import { AuthModule } from "./auth/auth.module.js"
 import { UserModule } from "./user/user.module.js"
 import { AuthenticationModule } from "@nestjs/authentication"
 import { AvatarModule } from "./avatar/avatar.module.js"
-import { TierModule } from './tier/tier.module.js';
+import { TierModule } from "./tier/tier.module.js"
+import { UserTierModule } from "./user-tier/user-tier.module.js"
+import { SettingModule } from "./setting/setting.module.js"
+import { PreferenceModule } from "./preference/preference.module.js"
 
 @Module({
   imports: [
@@ -24,6 +27,9 @@ import { TierModule } from './tier/tier.module.js';
     UserModule,
     AvatarModule,
     TierModule,
+    UserTierModule,
+    SettingModule,
+    PreferenceModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

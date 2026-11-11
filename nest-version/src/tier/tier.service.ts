@@ -44,7 +44,7 @@ export class TierService {
       where: { id },
     })
     if (!tier) {
-      throw new NotFoundException()
+      throw new NotFoundException("Tier not found")
     }
     return tier
   }
@@ -55,7 +55,7 @@ export class TierService {
       where: { id },
     })
     if (!existing) {
-      throw new NotFoundException()
+      throw new NotFoundException("Tier not found")
     }
 
     if (data.name && data.name !== existing.name) {
