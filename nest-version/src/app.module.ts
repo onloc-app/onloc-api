@@ -12,6 +12,7 @@ import { TierModule } from "./tier/tier.module.js"
 import { UserTierModule } from "./user-tier/user-tier.module.js"
 import { SettingModule } from "./setting/setting.module.js"
 import { PreferenceModule } from "./preference/preference.module.js"
+import { TokenModule } from "./token/token.module.js"
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PreferenceModule } from "./preference/preference.module.js"
     UserTierModule,
     SettingModule,
     PreferenceModule,
+    TokenModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

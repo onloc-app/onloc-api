@@ -13,6 +13,6 @@
 - [x] Preferences
 - [x] Settings
 - [x] Tiers
-- [ ] Tokens
+- [x] Tokens
 - [ ] Unified Push
 - [x] User Tiers
