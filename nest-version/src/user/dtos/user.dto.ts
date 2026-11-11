@@ -1,3 +1,5 @@
+import { AvatarDto } from "../../avatar/dtos/avatar.dto"
+
 export class UserDto {
   id: string
   username: string

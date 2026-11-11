@@ -6,8 +6,9 @@ import {
 import { PrismaService } from "../prisma/prisma.service.js"
 import { PasswordHasher, TokenService } from "@nestjs/authentication"
 import { AppService } from "../app.service.js"
-import { UserDto } from "../user/dtos/user.dto.js"
 import bcrypt from "bcryptjs"
+import { User } from "@prisma/client"
+import { UserWithAvatar } from "../user/types/UserWithAvatar.js"
 
 @Injectable()
 export class AuthService {
@@ -18,9 +19,13 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async login(username: string, password: string): Promise<UserDto | null> {
+  async login(
+    username: string,
+    password: string,
+  ): Promise<UserWithAvatar | null> {
     const found = await this.prisma.user.findUnique({
       where: { username: username },
+      include: { avatar: true },
     })
 
     if (!found) {
@@ -43,18 +48,10 @@ export class AuthService {
       })
     }
 
-    const dto: UserDto = {
-      id: found.id.toString(),
-      username: found.username,
-      admin: found.admin,
-      created_at: found.created_at,
-      updated_at: found.updated_at,
-    }
-
-    return dto
+    return found
   }
 
-  async register(username: string, password: string): Promise<UserDto> {
+  async register(username: string, password: string): Promise<User> {
     if (!(await this.appService.isRegistrationEnabled())) {
       throw new ForbiddenException("Registration is disabled")
     }
@@ -100,15 +97,7 @@ export class AuthService {
       }
     }
 
-    const dto: UserDto = {
-      id: newUser.id.toString(),
-      username: newUser.username,
-      admin: newUser.admin,
-      created_at: newUser.created_at,
-      updated_at: newUser.updated_at,
-    }
-
-    return dto
+    return newUser
   }
 
   async refresh(refreshToken: string): Promise<string> {

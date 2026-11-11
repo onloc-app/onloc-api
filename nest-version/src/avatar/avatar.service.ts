@@ -1,10 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
-import type { User } from "@prisma/client"
+import type { Avatar, User } from "@prisma/client"
 import { PrismaService } from "../prisma/prisma.service.js"
 import { extname, join } from "path"
 import { mkdir, unlink, writeFile } from "fs/promises"
 import { randomUUID } from "crypto"
-import { AvatarDto } from "./dtos/avatar.dto"
 
 @Injectable()
 export class AvatarService {
@@ -12,7 +11,7 @@ export class AvatarService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async store(user: User, file: Express.Multer.File): Promise<AvatarDto> {
+  async store(user: User, file: Express.Multer.File): Promise<Avatar> {
     await mkdir(this.uploadDir, { recursive: true })
 
     const extension = extname(file.originalname)
@@ -32,7 +31,7 @@ export class AvatarService {
       await unlink(oldDiskPath).catch(() => null)
     }
 
-    const avatar = await this.prisma.avatar.upsert({
+    return await this.prisma.avatar.upsert({
       where: { user_id: user.id },
       update: {
         url: fileUrl,
@@ -43,14 +42,6 @@ export class AvatarService {
         created_at: new Date(),
       },
     })
-
-    return {
-      id: avatar.id.toString(),
-      user_id: avatar.user_id.toString(),
-      url: avatar.url,
-      created_at: avatar.created_at,
-      updated_at: avatar.updated_at,
-    }
   }
 
   async remove(user: User): Promise<void> {

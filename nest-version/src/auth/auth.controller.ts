@@ -43,7 +43,20 @@ export class AuthController {
     this.authService.storeRefreshToken(BigInt(user.id), refreshToken, agent)
 
     return {
-      user: user,
+      user: {
+        id: user.id.toString(),
+        username: user.username,
+        admin: user.admin,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+        avatar: user.avatar && {
+          id: user.avatar.id.toString(),
+          user_id: user.avatar.user_id.toString(),
+          url: user.avatar.url,
+          created_at: user.avatar.created_at,
+          updated_at: user.avatar.updated_at,
+        },
+      },
       access_token: accessToken,
       refresh_token: refreshToken,
     }
@@ -65,7 +78,13 @@ export class AuthController {
     this.authService.storeRefreshToken(BigInt(user.id), refreshToken, agent)
 
     return {
-      user: user,
+      user: {
+        id: user.id.toString(),
+        username: user.username,
+        admin: user.admin,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      },
       access_token: accessToken,
       refresh_token: refreshToken,
     }

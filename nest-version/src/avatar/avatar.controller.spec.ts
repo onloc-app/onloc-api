@@ -54,14 +54,27 @@ describe("AvatarController", () => {
         buffer: Buffer.from(""),
         stream: new Readable(),
       } as unknown as Express.Multer.File
-      const mockAvatarDto = { id: 1n, url: "uploads/avatars/1.png" }
+      const mockAvatar = {
+        id: 1n,
+        user_id: 1n,
+        url: "uploads/avatars/1.png",
+        created_at: new Date(),
+        updated_at: new Date(),
+      }
+      const expectedDto = {
+        id: "1",
+        user_id: "1",
+        url: "uploads/avatars/1.png",
+        created_at: mockAvatar.created_at,
+        updated_at: mockAvatar.updated_at,
+      }
 
-      mockAvatarService.store.mockResolvedValue(mockAvatarDto)
+      mockAvatarService.store.mockResolvedValue(mockAvatar)
 
       const result = await controller.upsert(mockUser, mockFile)
 
       expect(service.store).toHaveBeenCalledWith(mockUser, mockFile)
-      expect(result).toEqual(mockAvatarDto)
+      expect(result).toEqual(expectedDto)
     })
   })
 

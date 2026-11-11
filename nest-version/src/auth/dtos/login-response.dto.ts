@@ -1,7 +1,7 @@
-import { UserDto } from "../../user/dtos/user.dto"
+import { UserWithAvatarDto } from "../../user/dtos/user-with-avatar.dto"
 
 export class LoginResponseDto {
-  user: UserDto
+  user: UserWithAvatarDto
   access_token: string
   refresh_token: string
 }

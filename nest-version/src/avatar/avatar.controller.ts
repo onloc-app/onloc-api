@@ -41,7 +41,14 @@ export class AvatarController {
     )
     file: Express.Multer.File,
   ): Promise<AvatarDto> {
-    return await this.avatarService.store(user, file)
+    const avatar = await this.avatarService.store(user, file)
+    return {
+      id: avatar.id.toString(),
+      user_id: avatar.user_id.toString(),
+      url: avatar.url,
+      created_at: avatar.created_at,
+      updated_at: avatar.updated_at,
+    }
   }
 
   @Delete()
