@@ -80,10 +80,15 @@ export class UserService {
     }
 
     const updateData: Partial<User> = {}
-    if (data.username) updateData.username = data.username
-    if (data.password)
+    if (data.username !== undefined) {
+      updateData.username = data.username
+    }
+    if (data.password !== undefined) {
       updateData.password = await this.passwordHasher.hash(data.password)
-    if (data.admin !== undefined && user.admin) updateData.admin = data.admin
+    }
+    if (data.admin !== undefined && user.admin) {
+      updateData.admin = data.admin
+    }
 
     return this.prisma.user.update({
       where: { id: user.id },

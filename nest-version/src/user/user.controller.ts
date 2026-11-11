@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common"
 import { UserService } from "./user.service.js"
 import { CurrentUser } from "@nestjs/authentication"
@@ -18,6 +19,7 @@ import { GetUserResponseDto } from "./dtos/responses/get-user-response.dto.js"
 import { UserWithAvatarDto } from "./dtos/user-with-avatar.dto.js"
 import { UserAdminDto } from "./dtos/user-admin.dto.js"
 import { PatchUserRequestDto } from "./dtos/requests/patch-user-request.dto.js"
+import { AdminGuard } from "../auth/guards/auth.guard.js"
 
 @Controller("users")
 export class UserController {
@@ -33,14 +35,9 @@ export class UserController {
     }
   }
 
+  @UseGuards(AdminGuard)
   @Get("admin")
-  async findAllAdmin(
-    @CurrentUser() user: User,
-  ): Promise<GetUsersAdminResponseDto> {
-    if (!user.admin) {
-      throw new ForbiddenException()
-    }
-
+  async findAllAdmin(): Promise<GetUsersAdminResponseDto> {
     const users = await this.userService.findAllAsAdmin()
     return {
       users: users.map((user) => {
