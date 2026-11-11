@@ -4,7 +4,7 @@ import {
   JwtClaims,
 } from "@nestjs/authentication"
 import { Injectable } from "@nestjs/common"
-import { PrismaService } from "../prisma/prisma.service.js"
+import { PrismaService } from "../../prisma/prisma.service.js"
 import { User } from "@prisma/client"
 
 @Injectable()
