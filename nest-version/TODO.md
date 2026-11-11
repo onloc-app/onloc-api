@@ -2,8 +2,7 @@
 
 - [x] Auth
 - [x] Avatars
-- [ ] Users
-  - TODO: tier dto
+- [x] Users
   - Note: `GET /users/info` no longer includes tier (UI will fetch tier separately)
 - [ ] API Keys
 - [ ] Connections
@@ -12,7 +11,7 @@
 - [ ] Locations
 - [ ] Preferences
 - [ ] Settings
-- [ ] Tiers
+- [x] Tiers
 - [ ] Tokens
 - [ ] Unified Push
 - [ ] User Tiers

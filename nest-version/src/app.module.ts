@@ -8,6 +8,7 @@ import { AuthModule } from "./auth/auth.module.js"
 import { UserModule } from "./user/user.module.js"
 import { AuthenticationModule } from "@nestjs/authentication"
 import { AvatarModule } from "./avatar/avatar.module.js"
+import { TierModule } from './tier/tier.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AvatarModule } from "./avatar/avatar.module.js"
     AuthModule,
     UserModule,
     AvatarModule,
+    TierModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
