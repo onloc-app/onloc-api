@@ -6,7 +6,7 @@ import {
 } from "@nestjs/terminus"
 import { AppService } from "./app.service.js"
 import { PrismaService } from "./prisma/prisma.service.js"
-import { StatusResponseDto } from "./dtos/status-response.dto.js"
+import { GetStatusResponseDto } from "./dtos/responses/get-status-response.dto.js"
 import { Public } from "@nestjs/authentication"
 
 @Controller()
@@ -20,7 +20,7 @@ export class AppController {
 
   @Public()
   @Get("status")
-  async status(): Promise<StatusResponseDto> {
+  async status(): Promise<GetStatusResponseDto> {
     return {
       is_setup: await this.appService.isSetup(),
       registration: await this.appService.isRegistrationEnabled(),

@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Param,
   ForbiddenException,
   Patch,
   Body,
@@ -20,6 +19,7 @@ import { UserWithAvatarDto } from "./dtos/user-with-avatar.dto.js"
 import { UserAdminDto } from "./dtos/user-admin.dto.js"
 import { PatchUserRequestDto } from "./dtos/requests/patch-user-request.dto.js"
 import { AdminGuard } from "../auth/guards/auth.guard.js"
+import { IdParam } from "../common/decorators/id-param.decorator.js"
 
 @Controller("users")
 export class UserController {
@@ -55,7 +55,7 @@ export class UserController {
   }
 
   @Get(":id")
-  async findOne(@Param("id") id: string): Promise<GetUserResponseDto> {
+  async findOne(@IdParam() id: bigint): Promise<GetUserResponseDto> {
     const user = await this.userService.findOne(BigInt(id))
     return {
       user: UserWithAvatarDto.from(user),
@@ -77,7 +77,7 @@ export class UserController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
     @CurrentUser() user: User,
-    @Param("id") id: string,
+    @IdParam() id: bigint,
   ): Promise<void> {
     const formattedId = BigInt(id)
     if (formattedId !== user.id && !user.admin) {

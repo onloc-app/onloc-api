@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   Patch,
   Post,
   UseGuards,
@@ -20,6 +19,7 @@ import { GetTiersResponseDto } from "./dtos/responses/get-tiers-response.dto.js"
 import { GetTierResponseDto } from "./dtos/responses/get-tier-response.dto.js"
 import { PatchTierResponseDto } from "./dtos/responses/patch-tier-response.dto.js"
 import { AdminGuard } from "../auth/guards/auth.guard.js"
+import { IdParam } from "../common/decorators/id-param.decorator.js"
 
 @UseGuards(AdminGuard)
 @Controller("tiers")
@@ -47,8 +47,8 @@ export class TierController {
   }
 
   @Get(":id")
-  async findOne(@Param("id") id: string): Promise<GetTierResponseDto> {
-    const tier = await this.tierService.findOne(BigInt(id))
+  async findOne(@IdParam() id: bigint): Promise<GetTierResponseDto> {
+    const tier = await this.tierService.findOne(id)
     return { tier: TierDto.from(tier) }
   }
 
@@ -62,7 +62,7 @@ export class TierController {
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param("id") id: string): Promise<void> {
-    await this.tierService.remove(BigInt(id))
+  async remove(@IdParam() id: bigint): Promise<void> {
+    await this.tierService.remove(id)
   }
 }
