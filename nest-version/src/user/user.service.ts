@@ -1,12 +1,20 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common"
 import { PrismaService } from "../prisma/prisma.service.js"
 import { User } from "@prisma/client"
 import { UserWithAvatar } from "./types/UserWithAvatar.js"
 import { UserAdmin } from "./types/UserAdmin.js"
+import { PasswordHasher } from "@nestjs/authentication"
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly passwordHasher: PasswordHasher,
+  ) {}
 
   async findAll(): Promise<UserWithAvatar[]> {
     return await this.prisma.user.findMany({
@@ -63,14 +71,24 @@ export class UserService {
     return user
   }
 
-  async update(
-    id: bigint,
-    data: Partial<{ username: string; password: string; admin: boolean }>,
-  ): Promise<User> {
-    await this.findOne(id)
+  async update(user: User, data: Partial<User>): Promise<UserWithAvatar> {
+    if (data.username && data.username !== user.username) {
+      const taken = await this.prisma.user.findUnique({
+        where: { username: data.username },
+      })
+      if (taken) throw new BadRequestException("Username taken")
+    }
+
+    const updateData: Partial<User> = {}
+    if (data.username) updateData.username = data.username
+    if (data.password)
+      updateData.password = await this.passwordHasher.hash(data.password)
+    if (data.admin !== undefined && user.admin) updateData.admin = data.admin
+
     return this.prisma.user.update({
-      where: { id },
-      data: { ...data },
+      where: { id: user.id },
+      data: updateData,
+      include: { avatar: true },
     })
   }
 

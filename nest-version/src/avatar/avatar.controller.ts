@@ -11,11 +11,12 @@ import {
   UseInterceptors,
 } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
-import type { User } from "@prisma/client"
 import type {} from "multer"
 import { AvatarService } from "./avatar.service.js"
 import { CurrentUser } from "@nestjs/authentication"
 import { AvatarDto } from "./dtos/avatar.dto.js"
+import type { User } from "@prisma/client"
+import { PostAvatarResponseDto } from "./dtos/responses/post-avatar-response.dto.js"
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
@@ -40,14 +41,10 @@ export class AvatarController {
       }),
     )
     file: Express.Multer.File,
-  ): Promise<AvatarDto> {
+  ): Promise<PostAvatarResponseDto> {
     const avatar = await this.avatarService.store(user, file)
     return {
-      id: avatar.id.toString(),
-      user_id: avatar.user_id.toString(),
-      url: avatar.url,
-      created_at: avatar.created_at,
-      updated_at: avatar.updated_at,
+      avatar: AvatarDto.from(avatar),
     }
   }
 

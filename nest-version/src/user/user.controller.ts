@@ -1,82 +1,91 @@
-import { Controller, Get, Param, ForbiddenException } from "@nestjs/common"
+import {
+  Controller,
+  Get,
+  Param,
+  ForbiddenException,
+  Patch,
+  Body,
+  Delete,
+  HttpCode,
+  HttpStatus,
+} from "@nestjs/common"
 import { UserService } from "./user.service.js"
 import { CurrentUser } from "@nestjs/authentication"
 import type { User } from "@prisma/client"
-import { UserAdminDto } from "./dtos/user-admin.dto.js"
+import { GetUsersResponseDto } from "./dtos/responses/get-users-response.dto.js"
+import { GetUsersAdminResponseDto } from "./dtos/responses/get-users-admin-response.dto.js"
+import { GetUserResponseDto } from "./dtos/responses/get-user-response.dto.js"
 import { UserWithAvatarDto } from "./dtos/user-with-avatar.dto.js"
+import { UserAdminDto } from "./dtos/user-admin.dto.js"
+import { PatchUserRequestDto } from "./dtos/requests/patch-user-request.dto.js"
 
 @Controller("users")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async findAll(): Promise<UserWithAvatarDto[]> {
+  async findAll(): Promise<GetUsersResponseDto> {
     const users = await this.userService.findAll()
-    return users.map((user) => {
-      const avatar = user.avatar
-      return {
-        id: user.id.toString(),
-        username: user.username,
-        admin: user.admin,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        avatar: avatar && {
-          id: avatar.id.toString(),
-          user_id: avatar.user_id.toString(),
-          url: avatar.url,
-          created_at: avatar.created_at,
-          updated_at: avatar.updated_at,
-        },
-      }
-    })
+    return {
+      users: users.map((user) => {
+        return UserWithAvatarDto.from(user)
+      }),
+    }
   }
 
   @Get("admin")
-  async findAllAdmin(@CurrentUser() user: User): Promise<UserAdminDto[]> {
+  async findAllAdmin(
+    @CurrentUser() user: User,
+  ): Promise<GetUsersAdminResponseDto> {
     if (!user.admin) {
       throw new ForbiddenException()
     }
 
     const users = await this.userService.findAllAsAdmin()
-    return users.map((user) => {
-      const avatar = user.avatar
-      return {
-        id: user.id.toString(),
-        username: user.username,
-        admin: user.admin,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        avatar: avatar && {
-          id: avatar.id.toString(),
-          user_id: avatar.user_id.toString(),
-          url: avatar.url,
-          created_at: avatar.created_at,
-          updated_at: avatar.updated_at,
-        },
-        tier: user.tier,
-        number_of_devices: user.number_of_devices,
-        number_of_locations: user.number_of_locations,
-      }
-    })
+    return {
+      users: users.map((user) => {
+        return UserAdminDto.from(user)
+      }),
+    }
+  }
+
+  @Get("info")
+  async findInfo(@CurrentUser() user: User): Promise<GetUserResponseDto> {
+    const found = await this.userService.findOne(user.id)
+    return {
+      user: UserWithAvatarDto.from(found),
+    }
   }
 
   @Get(":id")
-  async findOne(@Param("id") id: string): Promise<UserWithAvatarDto> {
+  async findOne(@Param("id") id: string): Promise<GetUserResponseDto> {
     const user = await this.userService.findOne(BigInt(id))
-    const avatar = user.avatar
     return {
-      id: user.id.toString(),
-      username: user.username,
-      admin: user.admin,
-      created_at: user.created_at,
-      updated_at: user.updated_at,
-      avatar: avatar && {
-        id: avatar.id.toString(),
-        user_id: avatar.user_id.toString(),
-        url: avatar.url,
-        created_at: avatar.created_at,
-        updated_at: avatar.updated_at,
-      },
+      user: UserWithAvatarDto.from(user),
     }
+  }
+
+  @Patch()
+  async update(
+    @CurrentUser() user: User,
+    @Body() body: PatchUserRequestDto,
+  ): Promise<GetUserResponseDto> {
+    const updated = await this.userService.update(user, body)
+    return {
+      user: UserWithAvatarDto.from(updated),
+    }
+  }
+
+  @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+  ): Promise<void> {
+    const formattedId = BigInt(id)
+    if (formattedId !== user.id && !user.admin) {
+      throw new ForbiddenException()
+    }
+    await this.userService.remove(formattedId)
   }
 }

@@ -1,5 +1,5 @@
 import { Tier } from "@prisma/client"
-import { UserWithAvatar } from "./UserWithAvatar"
+import { UserWithAvatar } from "./UserWithAvatar.js"
 
 export interface UserAdmin extends UserWithAvatar {
   tier: Tier | null
