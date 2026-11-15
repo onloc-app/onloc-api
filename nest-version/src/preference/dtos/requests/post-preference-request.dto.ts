@@ -1,7 +1,12 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator"
+import {
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  IsString,
+} from "class-validator"
 
 export class PostPreferenceRequestDto {
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   @IsOptional()
   user_id?: string

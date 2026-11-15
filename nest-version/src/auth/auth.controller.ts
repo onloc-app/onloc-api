@@ -42,7 +42,11 @@ export class AuthController {
       { method: "password" },
     )
 
-    this.authService.storeRefreshToken(BigInt(user.id), refreshToken, agent)
+    await this.authService.storeRefreshToken(
+      BigInt(user.id),
+      refreshToken,
+      agent,
+    )
 
     return {
       user: UserWithAvatarDto.from(user),
@@ -64,7 +68,11 @@ export class AuthController {
       { method: "password" },
     )
 
-    this.authService.storeRefreshToken(BigInt(user.id), refreshToken, agent)
+    await this.authService.storeRefreshToken(
+      BigInt(user.id),
+      refreshToken,
+      agent,
+    )
 
     return {
       user: UserDto.from(user),

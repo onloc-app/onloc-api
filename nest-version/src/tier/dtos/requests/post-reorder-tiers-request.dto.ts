@@ -4,12 +4,12 @@ import {
   IsArray,
   IsInt,
   IsNotEmpty,
-  IsString,
+  IsNumberString,
   ValidateNested,
 } from "class-validator"
 
 export class ReorderTierItemDto {
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   id: string
 

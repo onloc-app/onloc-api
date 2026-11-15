@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing"
 import { UserController } from "./user.controller.js"
 import { UserService } from "./user.service.js"
-import { PrismaService } from "../prisma/prisma.service.js"
+import { vi, describe, beforeEach, it, expect } from "vitest"
 
 describe("UserController", () => {
   let controller: UserController
@@ -10,10 +10,15 @@ describe("UserController", () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
       providers: [
-        UserService,
         {
-          provide: PrismaService,
-          useValue: {},
+          provide: UserService,
+          useValue: {
+            findAll: vi.fn(),
+            findOne: vi.fn(),
+            create: vi.fn(),
+            update: vi.fn(),
+            remove: vi.fn(),
+          },
         },
       ],
     }).compile()

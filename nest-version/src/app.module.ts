@@ -14,6 +14,8 @@ import { SettingModule } from "./setting/setting.module.js"
 import { PreferenceModule } from "./preference/preference.module.js"
 import { TokenModule } from "./token/token.module.js"
 import { ApiKeyModule } from "./api-key/api-key.module.js"
+import { DeviceModule } from "./device/device.module.js"
+import { ConnectionModule } from './connection/connection.module.js';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { ApiKeyModule } from "./api-key/api-key.module.js"
     PreferenceModule,
     TokenModule,
     ApiKeyModule,
+    DeviceModule,
+    ConnectionModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

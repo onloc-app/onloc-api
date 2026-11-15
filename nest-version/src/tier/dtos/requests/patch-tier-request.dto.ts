@@ -1,7 +1,14 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from "class-validator"
+import {
+  IsInt,
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator"
 
 export class PatchTierRequestDto {
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   id: string
 

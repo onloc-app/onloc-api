@@ -1,11 +1,16 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator"
+import {
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  IsString,
+} from "class-validator"
 
 export class PatchPreferenceRequestDto {
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   id: string
 
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   @IsOptional()
   user_id?: string

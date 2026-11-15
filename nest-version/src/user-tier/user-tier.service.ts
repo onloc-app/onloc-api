@@ -45,14 +45,14 @@ export class UserTierService {
 
   async checkPermissions(
     userId: bigint,
-  ): Promise<{ maxDevices: number | null } | null> {
+  ): Promise<{ maxDevices: number | null }> {
     const userTier = await this.prisma.userTier.findFirst({
       where: { user_id: userId },
       include: { tier: true },
     })
 
     if (!userTier) {
-      return null
+      return { maxDevices: null }
     }
 
     return { maxDevices: userTier.tier.max_devices }

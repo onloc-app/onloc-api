@@ -62,11 +62,13 @@ describe("AvatarController", () => {
         updated_at: new Date(),
       }
       const expectedDto = {
-        id: "1",
-        user_id: "1",
-        url: "uploads/avatars/1.png",
-        created_at: mockAvatar.created_at,
-        updated_at: mockAvatar.updated_at,
+        avatar: {
+          id: "1",
+          user_id: "1",
+          url: "uploads/avatars/1.png",
+          created_at: mockAvatar.created_at,
+          updated_at: mockAvatar.updated_at,
+        },
       }
 
       mockAvatarService.store.mockResolvedValue(mockAvatar)

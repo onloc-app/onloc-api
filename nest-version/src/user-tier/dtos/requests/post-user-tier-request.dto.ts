@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsString } from "class-validator"
+import { IsNotEmpty, IsNumberString } from "class-validator"
 
 export class PostUserTierRequestDto {
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   user_id: string
 
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   tier_id: string
 }
