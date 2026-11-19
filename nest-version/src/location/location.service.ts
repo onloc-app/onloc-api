@@ -112,9 +112,7 @@ export class LocationService {
 
     if (latest === true) {
       const devices = await this.prisma.device.findMany({
-        where: {
-          ...(deviceId ? { id: deviceId } : { user_id: userId }),
-        },
+        where: deviceId ? { id: deviceId } : { user_id: userId },
       })
       const locations: Location[] = []
       await Promise.all(

@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
-import { Prisma, Tier } from "@prisma/client"
+import { Tier } from "@prisma/client"
 import { PrismaService } from "../prisma/prisma.service.js"
 import { PostTierRequestDto } from "./dtos/requests/post-tier-request.dto.js"
 import { PatchTierRequestDto } from "./dtos/requests/patch-tier-request.dto.js"
