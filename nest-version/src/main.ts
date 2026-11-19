@@ -8,7 +8,8 @@ import { getApiVersion } from "./common/helpers/version.js"
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
-  app.enableCors({ origin: "*" })
+  app.enableCors({ origin: true, credentials: true })
+  app.useBodyParser("json", { limit: "10mb" })
   app.useStaticAssets(resolve(process.cwd(), "uploads"), {
     prefix: "/uploads",
   })
