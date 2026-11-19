@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common"
-import { PrismaService } from "./prisma/prisma.service.js"
-import { readFileSync } from "fs"
-import { resolve } from "path"
+import { PrismaService } from "../prisma/prisma.service.js"
+import { getApiVersion } from "../common/helpers/version.js"
 
 @Injectable()
 export class AppService {
@@ -29,9 +28,6 @@ export class AppService {
   }
 
   getApiVersion(): string {
-    const { version } = JSON.parse(
-      readFileSync(resolve(import.meta.dirname, "../package.json"), "utf-8"),
-    )
-    return version
+    return getApiVersion()
   }
 }

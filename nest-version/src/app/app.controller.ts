@@ -5,8 +5,8 @@ import {
   PrismaHealthIndicator,
 } from "@nestjs/terminus"
 import { AppService } from "./app.service.js"
-import { PrismaService } from "./prisma/prisma.service.js"
-import { GetStatusResponseDto } from "./common/dtos/responses/get-status-response.dto.js"
+import { PrismaService } from "../prisma/prisma.service.js"
+import { GetStatusResponseDto } from "./dtos/responses/get-status-response.dto.js"
 import { Public } from "@nestjs/authentication"
 
 @Controller()

@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common"
 import { PrismaService } from "../prisma/prisma.service.js"
 import { PasswordHasher, TokenService } from "@nestjs/authentication"
-import { AppService } from "../app.service.js"
+import { AppService } from "../app/app.service.js"
 import bcrypt from "bcryptjs"
 import { User } from "@prisma/client"
 import { UserWithAvatar } from "../user/types/UserWithAvatar.js"

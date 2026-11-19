@@ -27,7 +27,7 @@
 
 ### Other stuff
 
-- [ ] Swagger docs
+- [x] Swagger docs
 - [ ] Docker file
 
 ## Future
