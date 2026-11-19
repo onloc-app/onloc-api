@@ -1,4 +1,4 @@
-import { DeviceWithExtras } from "../types/DeviceWithExtras"
+import { DeviceWithExtras } from "../types/DeviceWithExtras.js"
 import { DeviceShareDto } from "./device-share.dto.js"
 import { DeviceDto } from "./device.dto.js"
 import { LocationDto } from "./location.dto.js"

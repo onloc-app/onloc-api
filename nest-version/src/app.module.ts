@@ -15,7 +15,12 @@ import { PreferenceModule } from "./preference/preference.module.js"
 import { TokenModule } from "./token/token.module.js"
 import { ApiKeyModule } from "./api-key/api-key.module.js"
 import { DeviceModule } from "./device/device.module.js"
-import { ConnectionModule } from './connection/connection.module.js';
+import { ConnectionModule } from "./connection/connection.module.js"
+import { UnifiedPushModule } from "./unified-push/unified-push.module.js"
+import { DeviceShareService } from "./device-share/device-share.service.js"
+import { DeviceShareController } from "./device-share/device-share.controller.js"
+import { DeviceShareModule } from "./device-share/device-share.module.js"
+import { LocationModule } from './location/location.module.js';
 
 @Module({
   imports: [
@@ -38,8 +43,11 @@ import { ConnectionModule } from './connection/connection.module.js';
     ApiKeyModule,
     DeviceModule,
     ConnectionModule,
+    UnifiedPushModule,
+    DeviceShareModule,
+    LocationModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, PrismaService],
+  controllers: [AppController, DeviceShareController],
+  providers: [AppService, PrismaService, DeviceShareService],
 })
 export class AppModule {}

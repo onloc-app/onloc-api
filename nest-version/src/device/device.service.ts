@@ -4,19 +4,27 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
-import { Device, DeviceShare, User } from "@prisma/client"
+import { Device, User } from "@prisma/client"
 import { PrismaService } from "../prisma/prisma.service.js"
+import { QueueService } from "../common/modules/queue/queue.service.js"
 import { UserTierService } from "../user-tier/user-tier.service.js"
 import { PostDeviceRequestDto } from "./dtos/requests/post-device-request.dto.js"
 import { PatchDeviceRequestDto } from "./dtos/requests/patch-device-request.dto.js"
 import { PostLockDeviceRequestDto } from "./dtos/requests/post-lock-device-request.dto.js"
 import { DeviceWithExtras } from "./types/DeviceWithExtras.js"
+import { AccessService } from "../common/modules/access/access.service.js"
+import { RealtimeService } from "../realtime/realtime.service.js"
+import { RealtimeGateway } from "../realtime/realtime.gateway.js"
 
 @Injectable()
 export class DeviceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userTierService: UserTierService,
+    private readonly queueService: QueueService,
+    private readonly accessService: AccessService,
+    private readonly realtimeService: RealtimeService,
+    private readonly realtimeGateway: RealtimeGateway,
   ) {}
 
   async create(user: User, data: PostDeviceRequestDto): Promise<Device> {
@@ -59,9 +67,9 @@ export class DeviceService {
     })
   }
 
-  async findAll(user: User): Promise<DeviceWithExtras[]> {
+  async findAll(userId: bigint): Promise<DeviceWithExtras[]> {
     const rawDevices = await this.prisma.device.findMany({
-      where: { user_id: user.id },
+      where: { user_id: userId },
     })
 
     return await Promise.all(
@@ -81,10 +89,10 @@ export class DeviceService {
     )
   }
 
-  async findShared(user: User): Promise<DeviceWithExtras[]> {
+  async findShared(userId: bigint): Promise<DeviceWithExtras[]> {
     const connections = await this.prisma.connection.findMany({
       where: {
-        OR: [{ requester_id: user.id }, { addressee_id: user.id }],
+        OR: [{ requester_id: userId }, { addressee_id: userId }],
         status: "ACCEPTED",
       },
       include: {
@@ -98,7 +106,7 @@ export class DeviceService {
 
     const rawDeviceShares = connections
       .flatMap((connection) => connection.deviceShares)
-      .filter((share) => share.device.user_id !== user.id)
+      .filter((share) => share.device.user_id !== userId)
 
     return await Promise.all(
       rawDeviceShares.map(async (deviceShare) => {
@@ -126,8 +134,8 @@ export class DeviceService {
     )
   }
 
-  async findOne(user: User, id: bigint): Promise<DeviceWithExtras> {
-    const hasAccess = await this.hasReadAccessToDevice(user.id, id)
+  async findOne(userId: bigint, id: bigint): Promise<DeviceWithExtras> {
+    const hasAccess = await this.accessService.hasReadAccessToDevice(userId, id)
     if (!hasAccess) {
       throw new ForbiddenException()
     }
@@ -152,12 +160,12 @@ export class DeviceService {
     }
   }
 
-  async update(user: User, data: PatchDeviceRequestDto): Promise<Device> {
+  async update(userId: bigint, data: PatchDeviceRequestDto): Promise<Device> {
     const id = BigInt(data.id)
     const existing = await this.prisma.device.findFirst({
       where: {
         id,
-        user_id: user.id,
+        user_id: userId,
       },
     })
     if (!existing) {
@@ -178,11 +186,11 @@ export class DeviceService {
     })
   }
 
-  async remove(user: User, id: bigint): Promise<void> {
+  async remove(userId: bigint, id: bigint): Promise<void> {
     const existing = await this.prisma.device.findFirst({
       where: {
         id: id,
-        user_id: user.id,
+        user_id: userId,
       },
     })
     if (!existing) {
@@ -194,8 +202,8 @@ export class DeviceService {
     })
   }
 
-  async ring(user: User, id: bigint): Promise<{ queued: boolean }> {
-    const hasAccess = await this.hasRingAccessToDevice(user.id, id)
+  async ring(userId: bigint, id: bigint): Promise<{ queued: boolean }> {
+    const hasAccess = await this.accessService.hasRingAccessToDevice(userId, id)
     if (!hasAccess) {
       throw new ForbiddenException("Not authorized to ring this device")
     }
@@ -209,20 +217,20 @@ export class DeviceService {
     }
 
     if (await this.shouldQueueCommand(id)) {
-      // TODO: QueueService.getInstance().ringQueue.add(id)
+      this.queueService.ringQueue.add(id)
       return { queued: true }
     }
 
-    // TODO: new RingCommand(device.id).execute()
+    await this.realtimeService.emitRingCommand(id)
     return { queued: false }
   }
 
   async lock(
-    user: User,
+    userId: bigint,
     id: bigint,
-    body?: PostLockDeviceRequestDto,
+    data?: PostLockDeviceRequestDto,
   ): Promise<{ queued: boolean }> {
-    const hasAccess = await this.hasLockAccessToDevice(user.id, id)
+    const hasAccess = await this.accessService.hasLockAccessToDevice(userId, id)
     if (!hasAccess) {
       throw new ForbiddenException("Not authorized to lock this device")
     }
@@ -236,16 +244,19 @@ export class DeviceService {
     }
 
     if (await this.shouldQueueCommand(id)) {
-      // TODO: QueueService.getInstance().lockQueue.add(id, body?.message)
+      this.queueService.lockQueue.add(id, data?.message ?? null)
       return { queued: true }
     }
 
-    // TODO: new LockCommand(device.id, body?.message).execute()
+    await this.realtimeService.emitLockCommand(id, data?.message)
     return { queued: false }
   }
 
-  async flash(user: User, id: bigint): Promise<{ queued: boolean }> {
-    const hasAccess = await this.hasFlashAccessToDevice(user.id, id)
+  async flash(userId: bigint, id: bigint): Promise<{ queued: boolean }> {
+    const hasAccess = await this.accessService.hasFlashAccessToDevice(
+      userId,
+      id,
+    )
     if (!hasAccess) {
       throw new ForbiddenException("Not authorized to flash this device")
     }
@@ -259,20 +270,16 @@ export class DeviceService {
     }
 
     if (await this.shouldQueueCommand(id)) {
-      // TODO: QueueService.getInstance().flashQueue.add(id)
+      this.queueService.flashQueue.add(id)
       return { queued: true }
     }
 
-    // TODO: new FlashCommand(device.id).execute()
+    await this.realtimeService.emitFlashCommand(id)
     return { queued: false }
   }
 
   async checkConnection(id: bigint): Promise<boolean> {
-    // TODO: Connect to Socket.IO gateway/server room check
-    // const roomName = `device-${id}`
-    // const sockets = await this.gateway.server.in(roomName).fetchSockets()
-    // return sockets.length > 0
-    return false
+    return await this.realtimeGateway.hasDeviceConnection(id)
   }
 
   private async shouldQueueCommand(deviceId: bigint): Promise<boolean> {
@@ -281,62 +288,5 @@ export class DeviceService {
     })
     const isConnected = await this.checkConnection(deviceId)
     return !isConnected && !pushProviders
-  }
-
-  private async ownsDevice(userId: bigint, deviceId: bigint): Promise<boolean> {
-    const owned = await this.prisma.device.findFirst({
-      where: { id: deviceId, user_id: userId },
-    })
-    return !!owned
-  }
-
-  private async grabDeviceShare(
-    userId: bigint,
-    deviceId: bigint,
-  ): Promise<DeviceShare | null> {
-    return await this.prisma.deviceShare.findFirst({
-      where: {
-        device_id: deviceId,
-        connection: {
-          OR: [{ requester_id: userId }, { addressee_id: userId }],
-        },
-      },
-    })
-  }
-
-  private async hasReadAccessToDevice(
-    userId: bigint,
-    deviceId: bigint,
-  ): Promise<boolean> {
-    if (await this.ownsDevice(userId, deviceId)) return true
-    const share = await this.grabDeviceShare(userId, deviceId)
-    return !!share
-  }
-
-  private async hasRingAccessToDevice(
-    userId: bigint,
-    deviceId: bigint,
-  ): Promise<boolean> {
-    if (await this.ownsDevice(userId, deviceId)) return true
-    const share = await this.grabDeviceShare(userId, deviceId)
-    return !!share?.can_ring
-  }
-
-  private async hasLockAccessToDevice(
-    userId: bigint,
-    deviceId: bigint,
-  ): Promise<boolean> {
-    if (await this.ownsDevice(userId, deviceId)) return true
-    const share = await this.grabDeviceShare(userId, deviceId)
-    return !!share?.can_lock
-  }
-
-  private async hasFlashAccessToDevice(
-    userId: bigint,
-    deviceId: bigint,
-  ): Promise<boolean> {
-    if (await this.ownsDevice(userId, deviceId)) return true
-    const share = await this.grabDeviceShare(userId, deviceId)
-    return !!share?.can_flash
   }
 }

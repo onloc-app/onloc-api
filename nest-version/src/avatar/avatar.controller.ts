@@ -42,7 +42,7 @@ export class AvatarController {
     )
     file: Express.Multer.File,
   ): Promise<PostAvatarResponseDto> {
-    const avatar = await this.avatarService.store(user, file)
+    const avatar = await this.avatarService.store(user.id, file)
     return {
       avatar: AvatarDto.from(avatar),
     }
@@ -51,6 +51,6 @@ export class AvatarController {
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@CurrentUser() user: User): Promise<void> {
-    return await this.avatarService.remove(user)
+    return await this.avatarService.remove(user.id)
   }
 }

@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  ForbiddenException,
   Patch,
   Body,
   Delete,
@@ -79,9 +78,6 @@ export class UserController {
     @CurrentUser() user: User,
     @IdParam() id: bigint,
   ): Promise<void> {
-    if (id !== user.id && !user.admin) {
-      throw new ForbiddenException()
-    }
-    await this.userService.remove(id)
+    await this.userService.remove(user, id)
   }
 }

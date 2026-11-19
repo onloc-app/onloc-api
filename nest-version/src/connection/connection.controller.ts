@@ -29,7 +29,7 @@ export class ConnectionController {
   async sendRequest(
     @CurrentUser() user: User,
     @Body() body: PostSendConnectionRequestDto,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<PostSendConnectionResponseDto> {
     const result = await this.connectionService.sendRequest(
       user.id,

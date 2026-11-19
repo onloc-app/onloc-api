@@ -39,7 +39,7 @@ export class DeviceController {
 
   @Get()
   async findAll(@CurrentUser() user: User): Promise<GetDevicesResponseDto> {
-    const devices = await this.deviceService.findAll(user)
+    const devices = await this.deviceService.findAll(user.id)
     return {
       devices: devices.map((device) => {
         return DeviceWithExtrasDto.from(device)
@@ -49,7 +49,7 @@ export class DeviceController {
 
   @Get("shared")
   async findShared(@CurrentUser() user: User): Promise<GetDevicesResponseDto> {
-    const devices = await this.deviceService.findShared(user)
+    const devices = await this.deviceService.findShared(user.id)
     return {
       devices: devices.map((device) => {
         return DeviceWithExtrasDto.from(device)
@@ -62,7 +62,7 @@ export class DeviceController {
     @CurrentUser() user: User,
     @IdParam() id: bigint,
   ): Promise<GetDeviceResponseDto> {
-    const device = await this.deviceService.findOne(user, id)
+    const device = await this.deviceService.findOne(user.id, id)
     return { device: DeviceWithExtrasDto.from(device) }
   }
 
@@ -71,7 +71,7 @@ export class DeviceController {
     @CurrentUser() user: User,
     @Body() body: PatchDeviceRequestDto,
   ): Promise<PatchDeviceResponseDto> {
-    const device = await this.deviceService.update(user, body)
+    const device = await this.deviceService.update(user.id, body)
     return { device: DeviceDto.from(device) }
   }
 
@@ -81,16 +81,16 @@ export class DeviceController {
     @CurrentUser() user: User,
     @IdParam() id: bigint,
   ): Promise<void> {
-    await this.deviceService.remove(user, id)
+    await this.deviceService.remove(user.id, id)
   }
 
   @Post(":id/ring")
   async ring(
     @CurrentUser() user: User,
     @IdParam() id: bigint,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const result = await this.deviceService.ring(user, id)
+    const result = await this.deviceService.ring(user.id, id)
     res.status(result.queued ? HttpStatus.ACCEPTED : HttpStatus.OK).send()
   }
 
@@ -99,9 +99,9 @@ export class DeviceController {
     @CurrentUser() user: User,
     @IdParam() id: bigint,
     @Body() body: PostLockDeviceRequestDto,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const result = await this.deviceService.lock(user, id, body)
+    const result = await this.deviceService.lock(user.id, id, body)
     res.status(result.queued ? HttpStatus.ACCEPTED : HttpStatus.OK).send()
   }
 
@@ -109,9 +109,9 @@ export class DeviceController {
   async flash(
     @CurrentUser() user: User,
     @IdParam() id: bigint,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const result = await this.deviceService.flash(user, id)
+    const result = await this.deviceService.flash(user.id, id)
     res.status(result.queued ? HttpStatus.ACCEPTED : HttpStatus.OK).send()
   }
 }

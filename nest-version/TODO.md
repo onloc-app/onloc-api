@@ -1,6 +1,8 @@
 # TODO
 
-## Endpoints
+## Nest transition
+
+### Endpoints
 
 - [x] Auth
 - [x] Avatars
@@ -16,25 +18,19 @@
 - [x] User Tiers
 - [x] Connections
 - [x] Devices
-- [ ] Device Shares
-- [ ] Locations
-- [ ] Unified Push
+- [x] Device Shares
+- [x] Locations
+  - Note: Get locations does not return per device objects anymore.
+  - Note: /locations/dates?device_id=:id is now /locations/:id/dates
+  - Note: Removed PATCH endpoint for locations
+- [x] Unified Push
 
-## Realtime & Services
+### Other stuff
 
-- [ ] Socket.IO Gateway (`@WebSocketGateway()`)
-  - Client room joining (`user-{id}`, `device-{id}`)
-  - Device connect/disconnect events
-  - User watching events
-- [ ] Notification Service (`NotificationService`)
-  - Emit connection change to user & device rooms
-  - Emit user watching status
-  - Push location updates to listeners
-- [ ] Queue Service (`QueueService`)
-  - In-memory command queue per device
-  - Dequeue / dispatch commands on reconnect
-- [ ] Device Commands
-  - Command base class
-  - RingCommand
-  - LockCommand
-  - FlashCommand
+- [ ] Swagger docs
+- [ ] Docker file
+
+## Future
+
+- [ ] Switch IDs to UUIDs
+- [ ] Hash API keys

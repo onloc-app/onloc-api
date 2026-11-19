@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
@@ -97,10 +98,11 @@ export class UserService {
     })
   }
 
-  async remove(id: bigint): Promise<void> {
+  async remove(user: User, id: bigint): Promise<void> {
+    if (id !== user.id && !user.admin) {
+      throw new ForbiddenException()
+    }
     await this.findOne(id)
-    await this.prisma.user.delete({
-      where: { id },
-    })
+    await this.prisma.user.delete({ where: { id: id } })
   }
 }
