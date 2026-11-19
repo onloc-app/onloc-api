@@ -1,13 +1,13 @@
 import { Module } from "@nestjs/common"
-import { PrismaService } from "../prisma/prisma.service.js"
+import { PrismaModule } from "../prisma/prisma.module.js"
 import { RealtimeModule } from "../realtime/realtime.module.js"
 import { UnifiedPushController } from "./unified-push.controller.js"
 import { UnifiedPushService } from "./unified-push.service.js"
 
 @Module({
-  imports: [RealtimeModule],
+  imports: [RealtimeModule, PrismaModule],
   controllers: [UnifiedPushController],
-  providers: [PrismaService, UnifiedPushService],
+  providers: [UnifiedPushService],
   exports: [UnifiedPushService],
 })
 export class UnifiedPushModule {}

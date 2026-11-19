@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common"
-import { PrismaService } from "../prisma/prisma.service.js"
+import { PrismaModule } from "../prisma/prisma.module.js"
 import { QueueModule } from "../common/modules/queue/queue.module.js"
 import { RealtimeModule } from "../realtime/realtime.module.js"
 import { UserTierModule } from "../user-tier/user-tier.module.js"
@@ -8,9 +8,15 @@ import { DeviceController } from "./device.controller.js"
 import { DeviceService } from "./device.service.js"
 
 @Module({
-  imports: [UserTierModule, QueueModule, RealtimeModule, AccessModule],
+  imports: [
+    UserTierModule,
+    QueueModule,
+    RealtimeModule,
+    AccessModule,
+    PrismaModule,
+  ],
   controllers: [DeviceController],
-  providers: [DeviceService, PrismaService],
+  providers: [DeviceService],
   exports: [DeviceService],
 })
 export class DeviceModule {}
