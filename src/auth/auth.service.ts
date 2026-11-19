@@ -120,7 +120,11 @@ export class AuthService {
     }
   }
 
-  async storeRefreshToken(userId: bigint, refreshToken: string, agent: string) {
+  async storeRefreshToken(
+    userId: bigint,
+    refreshToken: string,
+    agent: string | null,
+  ) {
     await this.prisma.refreshToken.upsert({
       where: { token: refreshToken },
       update: {

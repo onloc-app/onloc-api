@@ -29,8 +29,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post("login")
   async login(
-    @Headers("user-agent") agent: string,
     @Body() body: PostLoginRequestDto,
+    @Headers("user-agent") agent?: string | undefined,
   ): Promise<PostLoginResponseDto> {
     const user = await this.authService.login(body.username, body.password)
     if (!user) {
@@ -45,7 +45,7 @@ export class AuthController {
     await this.authService.storeRefreshToken(
       BigInt(user.id),
       refreshToken,
-      agent,
+      agent ?? null,
     )
 
     return {
@@ -58,8 +58,8 @@ export class AuthController {
   @Public()
   @Post("register")
   async register(
-    @Headers("user-agent") agent: string,
     @Body() body: PostRegisterRequestDto,
+    @Headers("user-agent") agent?: string | undefined,
   ): Promise<PostRegisterResponseDto> {
     const user = await this.authService.register(body.username, body.password)
 
@@ -71,7 +71,7 @@ export class AuthController {
     await this.authService.storeRefreshToken(
       BigInt(user.id),
       refreshToken,
-      agent,
+      agent ?? null,
     )
 
     return {
