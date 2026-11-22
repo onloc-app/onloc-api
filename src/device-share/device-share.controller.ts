@@ -15,6 +15,7 @@ import { DeviceShareDto } from "./dtos/device-share.dto.js"
 import { PostDeviceShareResponseDto } from "./dtos/responses/post-device-share-response.dto.js"
 import { GetDeviceSharesResponseDto } from "./dtos/responses/get-device-shares-response.dto.js"
 import { IdParam } from "../common/decorators/id-param.decorator.js"
+import { DeviceShareWithDeviceDto } from "./dtos/device-share-with-device.dto.js"
 
 @Controller("deviceshares")
 export class DeviceShareController {
@@ -36,7 +37,7 @@ export class DeviceShareController {
     const deviceShares = await this.deviceShareService.findAll(user.id)
     return {
       device_shares: deviceShares.map((deviceShare) => {
-        return DeviceShareDto.from(deviceShare)
+        return DeviceShareWithDeviceDto.from(deviceShare)
       }),
     }
   }
