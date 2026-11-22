@@ -30,7 +30,7 @@ export class AuthController {
   @Post("login")
   async login(
     @Body() body: PostLoginRequestDto,
-    @Headers("user-agent") agent?: string | undefined,
+    @Headers("user-agent") agent?: string,
   ): Promise<PostLoginResponseDto> {
     const user = await this.authService.login(body.username, body.password)
     if (!user) {
@@ -59,7 +59,7 @@ export class AuthController {
   @Post("register")
   async register(
     @Body() body: PostRegisterRequestDto,
-    @Headers("user-agent") agent?: string | undefined,
+    @Headers("user-agent") agent?: string,
   ): Promise<PostRegisterResponseDto> {
     const user = await this.authService.register(body.username, body.password)
 
