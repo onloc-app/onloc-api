@@ -1,0 +1,26 @@
+FROM oven/bun:1.3-alpine AS base
+WORKDIR /app
+
+RUN apk add --no-cache openssl
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY . .
+
+RUN bunx prisma generate
+RUN bun run build
+
+FROM oven/bun:1.3-alpine AS prod
+WORKDIR /app
+
+RUN apk add --no-cache openssl
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
+
+COPY --from=base /app/dist ./dist
+COPY --from=base /app/prisma ./prisma
+COPY --from=base /app/prisma.config.ts ./prisma.config.ts
+
+CMD ["sh", "-c", "bunx prisma migrate deploy && bun run start:prod"]
