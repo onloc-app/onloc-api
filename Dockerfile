@@ -1,4 +1,4 @@
-FROM oven/bun:1.3-alpine AS base
+FROM oven/bun:1.4-alpine AS base
 WORKDIR /app
 
 RUN apk add --no-cache openssl
@@ -11,7 +11,7 @@ COPY . .
 RUN bunx prisma generate
 RUN bun run build
 
-FROM oven/bun:1.3-alpine AS prod
+FROM oven/bun:1.4-alpine AS prod
 WORKDIR /app
 
 RUN apk add --no-cache openssl
