@@ -23,4 +23,6 @@ COPY --from=base /app/dist ./dist
 COPY --from=base /app/prisma ./prisma
 COPY --from=base /app/prisma.config.ts ./prisma.config.ts
 
+RUN bunx prisma generate
+
 CMD ["sh", "-c", "bunx prisma migrate deploy && bun run start:prod"]
